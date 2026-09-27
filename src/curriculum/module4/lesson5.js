@@ -143,8 +143,10 @@ measurably, and no further than the SLO allows. Utilization is bought, never fre
 ## PagedAttention — the teaser from 3.3, cashed in full
 
 Continuous batching creates its own bottleneck. Batch size is now the profit lever — and what
-bounds batch size? **KV cache memory** (3.3's bill: half a megabyte per token for a 70B-class
-model with vanilla attention; ~0.0625 MB with 8-way GQA). Every admitted request needs cache
+bounds batch size? **KV cache memory**. Redo 3.3's bill for a 70B-class model (80 layers,
+8,192-wide attention): with vanilla attention it would be $2 \times 80 \times 8{,}192 \times 2$
+bytes $\approx 2.6$ MB per token; Llama-70B actually uses GQA with 8 KV heads of 128 dimensions,
+so $2 \times 80 \times 1{,}024 \times 2 \approx 0.33$ MB per token. Every admitted request needs cache
 room. So the question "how many requests fit?" is a memory question, and here early serving
 systems were bleeding without noticing.
 
@@ -181,7 +183,7 @@ And paging brings a bonus the OS also discovered: **sharing**. Two requests carr
 1,000-token system prompt have *identical* cache blocks for that prefix — so point both page
 tables at one physical copy, and duplicate a block only if someone writes into it
 (copy-on-write). A hundred concurrent requests on one 70B server, each with that system
-prompt: naive storage $100 \times 62.5$ MB $= 6.25$ GB of identical bytes; shared, 62.5 MB
+prompt: naive storage $100 \times 330$ MB $\approx 33$ GB of identical bytes; shared, 330 MB
 total. The freed gigabytes buy — what else — more batch.
 `,
     },
@@ -229,8 +231,8 @@ seconds, stuttering every decode stream sharing the card (the SLO conflict from 
 above; chunked prefill softens it but doesn't cure the mismatch). So: split the fleet.
 A **prefill pool** runs prompts at high MFU; a **decode pool** runs fat batches against its
 bandwidth; between them, ship each request's KV cache once. Price the shipment on 4.1's
-ladder: a 2,000-token prompt's cache at 0.0625 MB/token is 125 MB — a few milliseconds on any
-datacenter interconnect, paid *once* — versus mismatched utilization on every GPU *forever*.
+ladder: a 2,000-token prompt's cache at 0.33 MB/token is about 0.66 GB — about a millisecond
+over NVLink, a dozen or so over InfiniBand, paid *once* — versus mismatched utilization on every GPU *forever*.
 The spend-the-slack principle, applied at fleet scale. And you can date the idea's rise:
 disaggregation went mainstream as prompts got long (RAG, 3.5's cached mega-contexts), because
 long prompts are what makes prefill big enough to deserve its own hardware.
@@ -245,22 +247,26 @@ fp16 with 8-way GQA, continuous batching with PagedAttention holding batch $B = 
 context each.
 
 **Decode step time.** Each iteration hauls the weights once — 140 GB — plus every stream's
-cache: $64 \times 8{,}192 \times 0.0625$ MB $\approx 33$ GB. Total ~173 GB per step:
+cache: $64 \times 8{,}192 \times 0.33$ MB $\approx 172$ GB. Total ~312 GB per step:
 
-$$\frac{173 \text{ GB}}{26.8 \text{ TB/s}} \approx 6.5 \text{ ms per step}$$
+$$\frac{312 \text{ GB}}{26.8 \text{ TB/s}} \approx 11.6 \text{ ms per step}$$
 
-Sit with that: a *solo* stream's step was ~5 ms. Batch 64 makes each step ~25% slower — and
-produces **64 tokens instead of 1**. That asymmetry is the entire economics of inference.
+Sit with that: a *solo* stream's step was ~5 ms. Batch 64 makes each step a bit over twice as
+slow — and produces **64 tokens instead of 1**. That asymmetry is the entire economics of
+inference. (Notice, too, that at this batch the *caches* outweigh the weights — 3.4's warning,
+come true.)
 
-**Throughput.** Ideal: $64 / 6.5$ ms $\approx 9{,}800$ tok/s. Real systems keep maybe a third
+**Throughput.** Ideal: $64 / 11.6$ ms $\approx 5{,}500$ tok/s. Real systems keep maybe a third
 of ideal (scheduling gaps, all-reduces, attention kernels, ragged batches — ballpark), call it
-**~3,000 tok/s** $\approx 10.8$ M tokens/hour. Cost:
+**~1,800 tok/s** $\approx 6.6$ M tokens/hour. Cost:
 
-$$\frac{\$20 / \text{hr}}{10.8 \text{ M tok/hr}} \approx \$1.85 \text{ per million output tokens}$$
+$$\frac{\$20 / \text{hr}}{6.6 \text{ M tok/hr}} \approx \$3 \text{ per million output tokens}$$
 
-Which is… inside the posted $1–3 range for 70B-class models. **The price is physics.** Naive
-$140 → engineered $1.85: continuous batching and paging did the closing, exactly the ~75×
-we owed.
+That lands at the top edge of the posted \$1–3 range for 70B-class models. And real providers
+take one more step you already own: serve weights *and* cache in 8-bit (4.4). Both hauls halve
+(70 GB + 86 GB per step, ~5.8 ms), throughput roughly doubles, and the cost falls to about
+**\$1.50 per million**. **The price is physics.** Naive \$140 → engineered \$1.50–3: continuous
+batching, paging, and quantization did the closing — the 50–100× we owed.
 
 **Why input is cheaper than output.** Price the prefill pool: the node peaks near 8 PFLOP/s
 in bf16; at ~40% MFU that's 3.2 PFLOP/s against 140 GFLOPs per token — about 23,000 input
@@ -282,14 +288,15 @@ weight-haul itself. Different lessons, one invoice.
       question: md`Do the derivation yourself before peeking: from prefill-vs-decode physics
 *alone* — no business reasoning — why should input tokens be priced several times cheaper than
 output tokens? And having derived the ratio, what does it mean that real pricing pages land at
-3–5× rather than the ~8× the raw physics suggests?`,
+3–5× rather than the ~10× the raw physics suggests?`,
       answer: md`An input token's marginal cost is almost pure *compute*: prefill processes
 the whole prompt in parallel, so each weight-haul is amortized over thousands of tokens and
 the GPU runs near its FLOP ceiling — ~140 GFLOPs per token for a 70B model, ~23,000 tok/s per
 node, a fraction of a dollar per million. An output token's marginal cost is a *serial
 bandwidth event*: it cannot exist until its predecessor does, and its step hauls the working
-set through HBM — even batched 64-wide, ~3,000 tok/s per node. Same node, ~8× fewer tokens
-per hour: output must cost roughly that multiple more. That the menu says 3–5× instead of 8×
+set through HBM — even batched 64-wide, roughly 2,000–4,000 tok/s per node. Same node, about
+ten times fewer tokens per hour: output must cost roughly that multiple more. That the menu says
+3–5× instead of ~10×
 is itself informative: input tokens carry costs beyond their FLOPs (their KV cache occupies
 the pool's memory for the whole conversation, taxing everyone's batch), margins and SLO
 headroom differ per phase, and fleets amortize across traffic mixes. The habit worth keeping:
@@ -316,7 +323,7 @@ any residual as a question with an answer, not noise.`,
    near-100%, and freed memory is freed *batch*, which is throughput.
 5. **The menu decoded:** cached-input discounts are page-sharing sold retail (3.5);
    input-vs-output pricing is prefill-vs-decode physics; disaggregated pools are
-   spend-the-slack (4.1) at fleet scale — ship 125 MB once instead of mismatching utilization
+   spend-the-slack (4.1) at fleet scale — ship well under a gigabyte once instead of mismatching utilization
    forever.
 6. **The invoice:** cost per token ≈ node dollars/hour ÷ (batch × steps/second × 3600), and
    batch is bounded by cache memory — which is why GQA, paging, quantization (4.4), and MoE
@@ -406,7 +413,7 @@ account: (1) the *disease* — why contiguous per-request KV allocation wastes m
 worked number (e.g. a 32k reservation against an 800-token request); (2) the *cure* — blocks,
 page tables, on-demand allocation, and where the only remaining waste hides; (3) the *bonus* —
 copy-on-write prefix sharing, with a number for 100 requests sharing a 1,000-token system
-prompt at 0.0625 MB/token; (4) the *payoff chain* — trace how a memory-bookkeeping fix ends up
+prompt at 0.33 MB/token; (4) the *payoff chain* — trace how a memory-bookkeeping fix ends up
 multiplying tokens per dollar, citing which prior lesson supplies the crucial link.`,
       rubric: md`**(1) Disease:** final length is unknown at admission, so classic allocators
 reserve worst-case contiguous slabs — 32,768 slots reserved, 800 used, is >97% waste for that
@@ -419,8 +426,8 @@ arrive; free instantly on retirement. Remaining waste = the last block's unfille
 most 15 slots (< 2% at 800–1,000 tokens).
 
 **(3) Bonus:** identical prefixes are identical blocks — map 100 page tables to one physical
-copy, duplicating only on write. Numbers: $1{,}000 \times 0.0625$ MB $= 62.5$ MB shared once
-versus $100 \times 62.5$ MB $= 6.25$ GB duplicated.
+copy, duplicating only on write. Numbers: $1{,}000 \times 0.33$ MB $= 330$ MB shared once
+versus $100 \times 330$ MB $= 33$ GB duplicated.
 
 **(4) Payoff chain:** near-100% memory utilization → 3–5× more concurrent requests in the
 same HBM → batch grows by that factor → **3.4's amortization law** (the crucial link: batch
@@ -472,7 +479,7 @@ the GPU, sets the price. This arithmetic is the entire motivation for paging.`,
 derive cost per million output tokens for a 70B fp16 model on an 8×H100 node ($20/hour,
 ~26.8 TB/s aggregate HBM bandwidth), twice: (1) naive single-stream (assume ~40 tok/s after
 overheads — say why it's bandwidth-bound); (2) continuous batching at $B = 64$, ~8k context,
-0.0625 MB/token cache — compute the per-step haul (weights + caches), step time, ideal
+0.33 MB/token cache — compute the per-step haul (weights + caches), step time, ideal
 throughput, apply a ~1/3 reality factor, and get dollars per million. Then name the single
 biggest lever in your formula, what bounds it, and the module tricks that buy more of it.`,
       rubric: md`**(1) Naive:** decode hauls 140 GB of weights per token; $140/26.8 \approx
@@ -480,14 +487,15 @@ biggest lever in your formula, what bounds it, and the module tricks that buy mo
 Bandwidth-bound because one token per step gives arithmetic intensity near 1 flop/byte — the
 multipliers idle while HBM streams (3.4).
 
-**(2) Batched:** per-step haul $= 140$ GB weights $+ 64 \times 8192 \times 0.0625$ MB
-$\approx 33$ GB caches $\approx 173$ GB; step $\approx 173/26.8 \approx 6.5$ ms; ideal
-$64/0.0065 \approx 9{,}800$ tok/s; ×(~1/3) → ~3,000 tok/s → ~10.8 M tok/hour →
-$\approx \$1.85$/M. Bonus credit for noticing the punchline: steps got ~25% slower and output
-64× larger.
+**(2) Batched:** per-step haul $= 140$ GB weights $+ 64 \times 8192 \times 0.33$ MB
+$\approx 172$ GB caches $\approx 312$ GB; step $\approx 312/26.8 \approx 11.6$ ms; ideal
+$64/0.0116 \approx 5{,}500$ tok/s; ×(~1/3) → ~1,800 tok/s → ~6.6 M tok/hour →
+$\approx \$3$/M. Bonus credit for noticing the punchline: steps got a bit over 2× slower and
+output 64× larger — and for adding that 8-bit weights and cache halve both hauls, bringing it to
+~\$1.50/M.
 
 **(3) The lever:** batch size $B$ — cost scales ~$1/B$ until the ceiling. **The bound:** KV
-cache memory (each admitted stream needs ~0.5 GB here). **What buys more:** GQA (3.3, ÷8
+cache memory (each admitted stream needs ~2.7 GB here). **What buys more:** GQA (3.3, ÷8
 cache), PagedAttention (recovers the 60–80% wasted), quantization (4.4, fewer bytes per
 weight *and* per cache entry), MoE (4.3, smaller per-step weight-haul).
 
@@ -499,16 +507,17 @@ back-of-envelope that infra interviews and capacity-planning meetings actually r
       id: 'm4-l5-q9',
       kind: 'numeric',
       prompt: md`**Fermi, at real scale:** an 8×80 GB H100 node (640 GB total) serves a 70B
-model in fp16 — weights take 140 GB of the node. Assume GQA brings the KV cache to
-0.0625 MB/token (3.3's 0.5 MB bill ÷ 8) and every conversation holds 8,192 tokens of context.
+model in fp16 — weights take 140 GB of the node. Llama-70B's GQA cache costs about
+0.33 MB/token (80 layers × 8 KV heads × 128 dims × K and V × 2 bytes), and every conversation
+holds 8,192 tokens of context.
 Roughly how many **concurrent conversations** fit in the remaining HBM? (Generous tolerance —
 the point is *what* bounds concurrency, not the third digit.)`,
-      answer: 1000,
-      tolerance: 400,
+      answer: 186,
+      tolerance: 60,
       explain: md`Free memory: $640 - 140 = 500$ GB. Per conversation:
-$8{,}192 \times 0.0625$ MB $= 0.5$ GB. So $500 / 0.5 \approx$ **1,000 conversations** — in
-practice several hundred once you subtract activation buffers and headroom, hence the fat
-tolerance. Notice what you just computed: not a memory statistic but the **throughput
+$8{,}192 \times 0.33$ MB $\approx 2.7$ GB. So $500 / 2.7 \approx$ **186 conversations** — a
+bit fewer once you subtract activation buffers and headroom, hence the tolerance. (Without GQA,
+at ~2.6 MB/token, it would be about 23.) Notice what you just computed: not a memory statistic but the **throughput
 ceiling** — cache capacity bounds batch, and batch is throughput (3.4). Every trick in this
 module that shrinks cache or weights (GQA, paging, int4, MoE) is really buying more
 conversations under this same roof.`,
@@ -529,7 +538,7 @@ prefill on one GPU pool, decode on another, shipping the KV cache between them?`
 during prefill the bandwidth sits idle; during decode the multipliers do. Worse is the
 interference — a 100k-token prefill occupies the compute units for seconds, freezing
 co-resident decode streams (a TPOT SLO violation you can watch). The ladder (4.1) prices the
-fix: shipping a 2k-prompt's cache is ~125 MB, milliseconds, once — versus mismatch on every
+fix: shipping a 2k-prompt's cache is ~0.66 GB, milliseconds, once — versus mismatch on every
 step forever. Option A is exactly backwards: the cache shipment is the *cost* disaggregation
 accepts. Option B is false — same weights both phases. Option D confuses transport-level
 streaming with fleet topology.`,
@@ -554,7 +563,7 @@ the 40 ms SLO. Throughput averages hide it because total tokens/hour barely move
 - *Chunked prefill:* slice the 100k prefill into pieces interleaved between decode steps —
   protects everyone's TPOT; costs the long-prompt user a somewhat later first token; the big
   request pays.
-- *Disaggregation:* move prefill to its own pool, ship the ~6 GB cache (100k × 0.0625 MB)
+- *Disaggregation:* move prefill to its own pool, ship the ~33 GB cache (100k × 0.33 MB)
   once — protects both SLOs; costs hardware partitioning plus the shipment; the operator
   pays in fleet complexity.
 - *(Also acceptable)* SLO-aware admission: refuse/queue giant prefills when predicted TPOT

@@ -48,9 +48,9 @@ so memory bills come from 52, speed bills from 12 (3.4's law with *active* bytes
 dimension: $6144 / 48 = 128$ — the standard size, good sanity check.
 
 **48 query heads / 8 KV heads (GQA)** — lesson 3.3: six query heads share each answer-sheet. KV
-cache per token: $2 \times 64 \times 8 \times 128 \times 2$ bytes $= 524{,}288 \approx$ **0.5
-MB/token** — versus 3.1 MB with full 48-head MHA. GQA already saved $6\times$ before you noticed.
-A 128k conversation: $\approx 66$ GB of cache even so — long context is still a memory problem.
+cache per token: $2 \times 64 \times 8 \times 128 \times 2$ bytes $= 262{,}144 \approx$ **0.25
+MB/token** — versus 1.5 MB with full 48-head MHA. GQA already saved $6\times$ before you noticed.
+A 128k conversation: $\approx 34$ GB of cache even so — long context is still a memory problem.
 
 **SwiGLU FFN** — 2.5's gated FFN variant; two-thirds of those 52B live here.
 
@@ -64,7 +64,7 @@ global reach. The section below derives why this mix works.
 **Trained bf16 / released int4** — 4.1's range-over-resolution bet for training; 4.4's crushing
 for release: $52 \times 0.5$ bytes $=$ **26 GB resident**.
 
-**256k vocabulary** — 3.1: half the multilingual tax of a 32k tokenizer; embedding table
+**256k vocabulary** — 3.1: a much smaller multilingual tax than a 32k tokenizer; embedding table
 $256{,}000 \times 6144 \approx$ **1.57B parameters** — 3% of the model, a check that the card's
 total is dominated by its blocks (2.6's audit habit).
 
@@ -73,7 +73,7 @@ FlashAttention (4.1) + paged serving (4.5) + the windowed/full mix (here). Headl
 engineering stacks wearing one number as a coat.
 
 That's the panel. Every field landed on a lesson, and three numbers fell out en route: 26 GB
-resident, 0.5 MB/token of cache, 1.57B embedding parameters. The questions will make you fly it
+resident, 0.25 MB/token of cache, 1.57B embedding parameters. The questions will make you fly it
 solo on a different card.
 `,
     },
@@ -127,8 +127,8 @@ recurrent rivals.`,
 
 Lesson 2.1 executed the RNN for two crimes: the fixed-size memory bottleneck (telephone game) and
 sequential training (GPUs idle). The transformer won by paying memory for *random access* to
-history — and lesson 3.3 priced that memory: 0.5 MB per token, forever growing. At 128k context,
-66 GB per conversation. The bill invites a heretical question: was the fixed-size state really so
+history — and lesson 3.3 priced that memory: for this card's model, 0.25 MB per token, forever
+growing. At 128k context, about 34 GB per conversation. The bill invites a heretical question: was the fixed-size state really so
 bad?
 
 **State-space models** (Mamba and kin) are the RNN pardoned on appeal — with one technicality
@@ -268,11 +268,11 @@ not attention quality.`,
       prompt: md`**Fermi — the cache line of the drill:** KV cache per token for the card's config:
 $2 \; (\text{K,V}) \times 64 \; \text{layers} \times 8 \; \text{KV heads} \times 128 \;
 \text{head-dim} \times 2 \; \text{bytes}$. Answer in **megabytes** (one decimal).`,
-      answer: 0.5,
-      tolerance: 0.15,
-      explain: md`$2 \times 64 \times 8 \times 128 \times 2 = 524{,}288$ bytes $\approx 0.5$ MB
-per token — and note GQA already did its work: with all 48 heads it would be 3.1 MB. At 128k
-context that's ~66 GB per conversation even *with* GQA; every long-context serving decision (4.5)
+      answer: 0.26,
+      tolerance: 0.05,
+      explain: md`$2 \times 64 \times 8 \times 128 \times 2 = 262{,}144$ bytes $\approx 0.26$ MB
+per token — and note GQA already did its work: with all 48 heads it would be 1.5 MB. At 128k
+context that's ~34 GB per conversation even *with* GQA; every long-context serving decision (4.5)
 flows from this one multiplication, which you can now run for any card in under a minute.`,
     },
     {
@@ -380,7 +380,8 @@ compute: (1) head dimension; (2) KV cache per token (MB or KB); (3) resident mem
 (4) embedding-table parameters; (5) decode ceiling on a 200 GB/s laptop; and (6) one sentence:
 the biggest *serving* difference between this card and the lesson's MoE card, and why.`,
       rubric: md`**(1)** $4608 / 36 = 128$. **(2)** $2 \times 42 \times 4 \times 128 \times 2 =
-86{,}016$ B $\approx 84$ KB/token (GQA ÷9 — six times leaner than the MoE card's 0.5 MB). **(3)**
+86{,}016$ B $\approx 84$ KB/token (GQA ÷9 — about three times leaner than the MoE card's
+0.25 MB). **(3)**
 $9 \times 10^9 \times 1$ byte $= 9$ GB. **(4)** $128{,}000 \times 4608 \approx 590$M. **(5)**
 dense → *all* 9 GB streams per token: $200 / 9 \approx 22$ tok/s. **(6)** The dense 9B is slower
 per token than the 52B MoE (22 vs ~33 tok/s) despite being $6\times$ smaller resident — because
@@ -427,8 +428,8 @@ without kid-level explanation first.`,
 2. **Only some experts wake (MoE active vs total):** the brain is a building full of specialists
    but each word only visits two of them — so it *thinks* like a huge brain but *works* like a
    small one. Predicts: speed follows the two specialists, smarts follow the whole building.
-3. **The per-word notepad (KV cache):** for every word of your chat it keeps half a megabyte of
-   notes so it never re-reads the conversation; long chats = mountains of notes. Predicts: how
+3. **The per-word notepad (KV cache):** for every word of your chat it keeps about a quarter of a
+   megabyte of notes so it never re-reads the conversation; long chats = mountains of notes. Predicts: how
    many long conversations fit before the workspace overflows.
 4. **Jargon audit:** "quantization," "MoE," "KV cache," "GQA" unexplained = partial. The core
    skill being graded: field → mechanism → *prediction*, in words a kid tracks.`,

@@ -50,7 +50,8 @@ So do the obvious-in-hindsight thing. Replace the one big FFN with $N$ smaller F
 **experts** — and hire a receptionist: a **router**. The router is nothing exotic. It is a single
 linear layer producing $N$ scores from the token's vector, then lesson 1.4's softmax turning
 scores into probabilities — the same machine that ends every transformer, now hired for triage.
-Take the **top-$k$** experts (almost always $k = 2$), run *only those*, and blend their outputs
+Take the **top-$k$** experts (classically $k = 2$; newer fine-grained designs pick more, smaller
+experts — DeepSeek-V3 takes 8 of 256), run *only those*, and blend their outputs
 weighted by the renormalized router probabilities:
 
 $$\text{output} = \sum_{i \in \text{top-}k} \frac{p_i}{\sum_{j \in \text{top-}k} p_j}\; E_i(\mathbf{x})$$
@@ -165,7 +166,8 @@ week after 500, and the router's softmax — remember from 1.4 that softmax turn
 lead into a landslide — locks it in. The endgame is two favorites carrying everything. (Numbers
 illustrative; the dynamic is real and was the central obstacle in early MoE work.)
 
-Three medicines ship in essentially every modern MoE:
+Three medicines have been standard in modern MoEs (with one notable dissent: DeepSeek-V3 replaced
+most of the auxiliary loss below with a cheaper bias-adjustment trick, which lesson 8.3 unpacks):
 
 **1. The auxiliary load-balancing loss.** Add to the training loss a term shaped like
 

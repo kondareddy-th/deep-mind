@@ -63,9 +63,11 @@ direction step after step, and the error compounds linearly with time.
 **Inference reads.** The frozen weight is used inside dot products (1.1) — multiplied and summed
 with thousands of partners. Round each of 4096 weights a little, in directions that are
 essentially independent, and the drunkard's walk (1.1, yet again) says the *sum's* error grows
-like $\sqrt{4096} = 64$ rounding-units — while the sum itself has thousands of full-size terms.
-The errors partially cancel; the signal doesn't. A per-weight wobble of half a percent becomes a
-per-activation wobble far smaller, relatively speaking.
+only like $\sqrt{4096} = 64$ rounding-units, not 4096. How small that is *relative to the output*
+depends on the signal: where weights line up with the activations — the features the layer actually
+detects — the signal adds coherently and outgrows the noise; in unaligned directions the relative
+error stays near the per-weight level. Either way the error is a **one-time, unbiased wobble** that
+never compounds, and networks trained on noisy data tolerate small wobbles well.
 
 Accumulate a million times: errors *compound*. Read once into a big sum: errors *cancel*. Same
 numbers, opposite arithmetic destinies. That is the whole secret of quantization — and why it's an
@@ -283,8 +285,8 @@ precision wasn't even enough for training?`,
       ],
       answer: 2,
       explain: md`Accumulate vs read — the lesson's spine. Compounding systematic drift (linear in
-steps) versus canceling independent wobbles (growing only as $\sqrt d$ against thousands of
-full-size terms): same numbers, opposite arithmetic destinies. Option D describes a real *garnish*
+steps) versus a one-time, unbiased wobble whose sum grows only as $\sqrt d$ and never compounds:
+same numbers, opposite arithmetic destinies. Option D describes a real *garnish*
 (mixed-precision outlier handling) but not the reason the main dish works — the well-behaved
 99.9% of weights survive at 4 bits on the cancellation argument alone.`,
     },

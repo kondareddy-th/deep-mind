@@ -60,7 +60,9 @@ matmuls. Add it up, per parameter:
 **Sixteen bytes per parameter** — versus two for inference. The model you chat with is the cheap
 part; the machine that *made* it carried $8\times$ the state. For 70B parameters:
 $70 \times 10^9 \times 16 = 1.12$ TB. There's the terabyte, from a table you can rebuild from
-memory. (And this is *after* being clever with precision — all-fp32 would be 20 bytes.)
+memory. (Surprise: pure fp32 training is *also* 16 bytes — 4 each for weights, gradients, $m$ and
+$v$, with no separate master copy needed. Mixed precision doesn't shrink the optimizer bill; it buys
+speed, via fast 16-bit matmuls, and halves the activation memory.)
 
 ## The other pile: activations
 
@@ -195,7 +197,8 @@ why is the *recompute* nearly free by lesson 3.4's logic?)`,
 roughly $8\times$ less (plus one segment's worth of transient recomputed activations, ~8 layers,
 so call it $\sim 80/(8{+}8) \approx 5$–$8\times$ in practice). Compute: each segment is re-run
 forward once during backprop — about one extra forward pass, and since a training step costs
-roughly forward + 2×backward, that's **~33% more FLOPs**. The 3.4 twist that makes this a
+roughly one forward plus a backward that is about twice as expensive (≈ 3 forward passes in all),
+that's **~33% more FLOPs**. The 3.4 twist that makes this a
 famously good deal: training compute is *high arithmetic intensity* — the weights hauled for
 recompute are reused across the whole batch, so the GPU actually has spare multiplier capacity;
 you're spending the resource that was idling (FLOPs) to save the one that was full (HBM). The
@@ -429,8 +432,8 @@ one clever trick where *redoing work on purpose* beats storing something. No jar
 kid-level explanation first.`,
       rubric: md`Grade the teaching:
 
-1. **The desk limit made real** — the biggest desks money buys (80 GB) are far smaller than the
-   puzzle (a terabyte of pieces); you can't buy your way out, so you must *organize*.
+1. **The desk limit made real** — even the biggest desks money buys (80 GB on an H100, ~200 GB on
+   the newest cards) are far smaller than the puzzle (a terabyte of pieces); you can't buy your way out, so you must *organize*.
 2. **Distance = time, in tiers** — grabbing from the desk is instant, the shelf is a walk, the
    closet a trek, the storage unit an afternoon; each is ~10× the previous, so what you touch
    constantly lives close, what you touch once a day can live far.

@@ -89,8 +89,9 @@ direction. After two steps, each GPU is computing gradients *of a different mode
 data with one-eighth of the batch (hello again, 3.4 starvation), and at the end you own eight
 mediocre models and zero good ones. The all-reduce is not bookkeeping — it **is the definition of
 training one shared model**. Lesson 1.6's step wants *the* batch gradient, and averaging
-equal-sized shard averages gives exactly that: data parallelism is bit-for-bit the same
-mathematics as one giant GPU running the whole batch, computed in two stages. That quiet
+equal-sized shard averages gives exactly that: data parallelism is the same mathematics as one
+giant GPU running the whole batch, computed in two stages (identical up to floating-point rounding,
+since the sums happen in a different order). That quiet
 exactness is its superpower — of the four splits, it's the only one you can bolt on without
 re-deriving anything.`,
     },
@@ -128,7 +129,7 @@ sounds alarming until you notice each gather is small, predictable, and — the 
 
 Hold on to the deep point, because it renames the whole idea: **ZeRO is not a new parallelism.
 It is data parallelism with the redundancy squeezed out.** Same batch splitting. Same gradient
-averaging (just ending with shards instead of copies). Bit-identical math. Nothing about the
+averaging (just ending with shards instead of copies). Identical math. Nothing about the
 *computation* was divided — only the *storage*. Which means there remains a thing ZeRO cannot do,
 and it forces the third split.
 `,
@@ -366,7 +367,7 @@ data parallelism?`,
       options: [
         'ZeRO is tensor parallelism applied to the optimizer: each GPU computes every layer using only its slice of each weight matrix',
         'ZeRO turns the run into N semi-independent models that periodically synchronize their weights',
-        'ZeRO is data parallelism with the redundancy squeezed out: same batch split, same gradient averaging, bit-identical math — the N identical copies of state are sharded and gathered just in time',
+        'ZeRO is data parallelism with the redundancy squeezed out: same batch split, same gradient averaging, identical math — the N identical copies of state are sharded and gathered just in time',
         'ZeRO is pipeline parallelism in which optimizer states, rather than activations, flow between stages',
       ],
       answer: 2,

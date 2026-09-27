@@ -54,7 +54,8 @@ makes this a case study in *thinking*, rather than a list of tricks.
 ## Innovation 1 — MLA: stop caching what you can rebuild
 
 **What was expensive:** the KV cache. Lesson 3.3 priced it: half a megabyte per token for a
-70B-class model, tens of gigabytes per long conversation, and it *grows with every token* while the
+7B model with plain attention (a 70B-class model pays ~2.6 MB, or ~0.33 MB with GQA), tens of
+gigabytes per long conversation, and it *grows with every token* while the
 weights stay fixed. GQA (3.3) shrinks it by sharing key/value heads across query heads — but that
 is a blunt instrument: you pay in quality for every group you merge.
 
