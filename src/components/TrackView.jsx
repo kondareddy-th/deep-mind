@@ -3,6 +3,20 @@ import Markdown from '../lib/markdown.jsx'
 import { planSession, nextAction, trackSummary, retention } from '../tracks/scheduler.js'
 import { generateChallenge, evaluateSubmission, explainError, hasApiKey, keyIsFromEnv } from '../tracks/llm.js'
 import { loadTracks, trackState, recordSession, saveSubmission, saveActive, loadActive } from '../tracks/store.js'
+import { curriculum } from '../curriculum/index.js'
+import { lessonStats } from '../lib/storage.js'
+
+// What the learner has studied in this track's foundation module, as the generator sees it.
+function foundationInfo(track, progress) {
+  const mod = curriculum.find((m) => m.id === track.foundation?.moduleId)
+  if (!mod) return { mod: null, rows: [], summary: '' }
+  const rows = mod.lessons.map((l) => ({ lesson: l, ...lessonStats(l, progress || {}) }))
+  const studied = rows.filter((r) => r.answered > 0)
+  const summary = studied
+    .map((r) => `- ${r.lesson.title}: answered ${r.answered}/${r.total}, ${r.answered ? Math.round((100 * r.correct) / r.answered) : 0}% correct`)
+    .join('\n')
+  return { mod, rows, studied, summary }
+}
 
 const pct = (x) => Math.round((x ?? 0) * 100)
 
@@ -27,9 +41,10 @@ function CompetencyBar({ c }) {
   )
 }
 
-export default function TrackView({ track, allTracks, setAllTracks }) {
+export default function TrackView({ track, allTracks, setAllTracks, progress, openLesson }) {
   const state = trackState(allTracks, track.id)
   const summary = useMemo(() => trackSummary(track, state), [track, state])
+  const found = useMemo(() => foundationInfo(track, progress), [track, progress])
 
   const [phase, setPhase] = useState('idle') // idle | generating | challenge | evaluating | evaluated
   const [plan, setPlan] = useState(() => planSession(track, state))
@@ -73,7 +88,7 @@ export default function TrackView({ track, allTracks, setAllTracks }) {
     setError(null)
     setPhase('generating')
     try {
-      const ch = await generateChallenge({ track, state, plan: p })
+      const ch = await generateChallenge({ track, state, plan: p, foundationSummary: found.summary })
       setChallenge(ch)
       setPlan(p)
       setStartedAt(Date.now())
@@ -153,6 +168,34 @@ export default function TrackView({ track, allTracks, setAllTracks }) {
           <b>No API key set.</b> These tracks invent each challenge at runtime, so they need an Anthropic key.
           Add one under <b>Settings</b> in the sidebar — or put <code>ANTHROPIC_KEY=…</code> in a{' '}
           <code>.env</code> file and restart the dev server.
+        </div>
+      )}
+
+      {found.mod && (
+        <div className="track-panel foundation-card">
+          <div className="track-panel-head">
+            <h2>{track.foundation.label}</h2>
+            <span className="track-stat">
+              {found.studied.length}/{found.rows.length} lessons started
+            </span>
+          </div>
+          <p className="track-note" style={{ marginTop: 4 }}>
+            The fixed lessons teach the concepts; this track makes you use them. The challenge generator
+            reads your quiz results from these lessons, so it pitches work at what you've actually covered
+            — and deliberately exercises what you found hard.
+          </p>
+          <div className="foundation-chips">
+            {found.rows.map((r) => (
+              <button
+                key={r.lesson.id}
+                className={`foundation-chip ${r.answered === 0 ? '' : r.correct / r.answered >= 0.7 ? 'good' : 'weak'}`}
+                onClick={() => openLesson(found.mod.id, r.lesson.id)}
+                title={r.lesson.title}
+              >
+                {r.lesson.title.split(' ')[0]}
+              </button>
+            ))}
+          </div>
         </div>
       )}
 

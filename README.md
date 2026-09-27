@@ -38,6 +38,25 @@ Your progress, typed answers, and photos are stored locally in your browser
 | 7 · Adaptation — the decision tree (prompt/RAG/fine-tune), LoRA & the low-rank bet, data as the real lever, preference tuning (DPO/KTO/GRPO), the toolchain, evaluating your own model | ✅ live |
 | 8 · Efficiency & the Frontier Mindset — where time goes (roofline), kernels, the DeepSeek teardown, distillation, the seven idea-generators, your research agenda (capstone) | ✅ live |
 
+## Foundations: Python and System Design
+
+Two introductory sections sit at the top of the curriculum, one per adaptive track. They assume only
+basic programming and are heavy on small, runnable examples.
+
+| Foundations · Python | Foundations · System Design |
+|---|---|
+| Py.1 Classes | SD.1 The design method |
+| Py.2 Inheritance, composition & polymorphism | SD.2 Back-of-envelope estimation |
+| Py.3 The data model — dunder methods & dataclasses | SD.3 Networks & APIs |
+| Py.4 Properties, class methods & encapsulation | SD.4 Databases |
+| Py.5 Functions as objects — closures & decorators | SD.5 Caching |
+| Py.6 Iterators, generators & comprehensions | SD.6 Queues & async work |
+| Py.7 Errors, context managers & type hints | SD.7 Scaling & reliability |
+| Py.8 Modules, testing & async | SD.8 Two full designs — a news feed and an AI assistant |
+
+The adaptive tracks read your quiz results from these lessons, so generated challenges are pitched at
+concepts you have actually covered and deliberately exercise the ones you found hard.
+
 ## Two ongoing adaptive tracks
 
 Alongside the fixed curriculum there are two **tracks** that never run out, because nothing in
@@ -76,7 +95,7 @@ The `.env` path is injected **only by the dev server** — a production build al
 empty string, so `npm run build` output can never carry your key, and `.env` is gitignored.
 Modules 1–8 need no key and work entirely offline.
 
-**The curriculum is complete: 48 lessons, 576 questions, 144 stop-and-think boxes, 18 interactive 3D visualizations.**
+**The curriculum: 64 lessons (16 foundation + 48 core), 768 questions, 192 stop-and-think boxes, 18 interactive 3D visualizations — plus two adaptive tracks that never run out.**
 
 Modules 1–6 teach how LLMs work, end to end. Modules 7–8 teach what practitioners and frontier
 labs actually *do* with that understanding: adapting models, buying capability with less compute,

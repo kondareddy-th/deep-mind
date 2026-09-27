@@ -25,6 +25,7 @@ hostile interrogation. Three specialisations run through it: (a) general
 distributed-systems design, (b) AI-product architecture — RAG, agents, evals,
 inference cost, the failure modes of LLM systems, (c) performing this live, on a
 clock, the way a senior system-design interview demands.`,
+    foundation: { moduleId: 'sd', label: 'Foundations · System Design' },
     competencies: [
       { id: 'requirements', name: 'Requirements & scoping', note: 'Pinning down what must actually be built, and what must not.' },
       { id: 'data-modeling', name: 'Data modeling', note: 'Schemas, access patterns, consistency, the shape data really has.' },
@@ -53,7 +54,11 @@ standard that survives review: correct on the awkward cases, tested where testin
 earns its keep, fast enough on purpose rather than by luck, and readable by someone
 who arrives a year later. Two specialisations run through it: (a) building
 LLM-powered product features well, (b) performing under interview conditions —
-a clean solution, explained while writing it, on a clock.`,
+a clean solution, explained while writing it, on a clock.
+
+Primary language: Python. Write challenges in Python unless a specific competency
+genuinely needs another language (for example SQL for a data-access exercise).`,
+    foundation: { moduleId: 'py', label: 'Foundations · Python' },
     competencies: [
       { id: 'decomposition', name: 'Decomposition', note: 'Cutting a problem into the units it actually has.' },
       { id: 'correctness', name: 'Correctness & edge cases', note: 'Invariants, boundaries, the input that breaks it.' },

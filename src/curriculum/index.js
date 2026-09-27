@@ -1,3 +1,19 @@
+import py1 from './py/lesson1.js'
+import py2 from './py/lesson2.js'
+import py3 from './py/lesson3.js'
+import py4 from './py/lesson4.js'
+import py5 from './py/lesson5.js'
+import py6 from './py/lesson6.js'
+import py7 from './py/lesson7.js'
+import py8 from './py/lesson8.js'
+import sd1 from './sd/lesson1.js'
+import sd2 from './sd/lesson2.js'
+import sd3 from './sd/lesson3.js'
+import sd4 from './sd/lesson4.js'
+import sd5 from './sd/lesson5.js'
+import sd6 from './sd/lesson6.js'
+import sd7 from './sd/lesson7.js'
+import sd8 from './sd/lesson8.js'
 import m1l1 from './module1/lesson1.js'
 import m1l2 from './module1/lesson2.js'
 import m1l3 from './module1/lesson3.js'
@@ -49,6 +65,16 @@ import m8l6 from './module8/lesson6.js'
 
 // The full journey. Modules unlock as content lands — the roadmap is the promise.
 export const curriculum = [
+  {
+    id: 'py',
+    title: 'Foundations · Python',
+    lessons: [py1, py2, py3, py4, py5, py6, py7, py8],
+  },
+  {
+    id: 'sd',
+    title: 'Foundations · System Design',
+    lessons: [sd1, sd2, sd3, sd4, sd5, sd6, sd7, sd8],
+  },
   {
     id: 'm1',
     title: 'Module 1 · Math for LLMs',

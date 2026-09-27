@@ -77,6 +77,8 @@ export default function App() {
             track={trackById(view.trackId)}
             allTracks={allTracks}
             setAllTracks={setAllTracks}
+            progress={progress}
+            openLesson={openLesson}
           />
         )}
         {view.page === 'lesson' && (

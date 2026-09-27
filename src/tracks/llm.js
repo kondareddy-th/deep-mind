@@ -151,7 +151,7 @@ Principles:
 
 // ---- calls ------------------------------------------------------------------
 
-export async function generateChallenge({ track, state, plan }) {
+export async function generateChallenge({ track, state, plan, foundationSummary }) {
   const c = client()
   const targetList = plan.targets.map((t) => `${t.id} (${t.name}) — currently level ${t.level ?? 1}`).join('\n')
 
@@ -165,6 +165,9 @@ ${competencyBriefing(track, state, plan)}
 
 RECENT SESSIONS:
 ${recentHistory(state)}
+
+FOUNDATION LESSONS THE LEARNER HAS STUDIED (their quiz results — use this to pitch the challenge at concepts they have actually covered, and to deliberately exercise ones they found hard):
+${foundationSummary || 'No foundation lessons attempted yet — assume only basic programming knowledge and do not rely on advanced language features without a hint.'}
 
 THE SCHEDULER HAS DECIDED THIS SESSION IS: ${plan.mode.toUpperCase()}
 Its reasoning: ${plan.rationale}

@@ -329,3 +329,28 @@ textarea.answer-input { width: 100%; min-height: 110px; font-family: var(--sans)
 .score-ev { font-size: 13.5px; font-style: italic; color: #6e6b63; border-left: 2px solid var(--border-strong); padding-left: 10px; margin: 6px 0 10px; }
 .score-row input[type='range'] { width: 100%; accent-color: var(--accent); }
 .score-anchor { display: flex; justify-content: space-between; font-size: 11.5px; color: var(--text-dim); margin-top: 2px; }
+
+/* ---------- Code blocks + syntax highlighting (warm palette on dark ground) ---------- */
+.md pre.code-block { position: relative; padding-top: 26px; line-height: 1.55; font-size: 13.5px; }
+.md pre.code-block .code-lang {
+  position: absolute; top: 7px; right: 14px; font-family: var(--sans);
+  font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; color: #8a857a;
+}
+.hljs-keyword, .hljs-built_in, .hljs-literal { color: #e8a48c; }
+.hljs-title, .hljs-title.function_, .hljs-title.class_ { color: #f2c572; }
+.hljs-string, .hljs-regexp { color: #a8c69a; }
+.hljs-number { color: #d9a3e0; }
+.hljs-comment { color: #8a857a; font-style: italic; }
+.hljs-params, .hljs-variable, .hljs-attr { color: #f0eee6; }
+.hljs-meta, .hljs-decorator { color: #8fb3e8; }
+.hljs-type, .hljs-class { color: #f2c572; }
+.hljs-subst { color: #f0eee6; }
+.mcq-option .md pre { margin: 6px 0; }
+.foundation-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.foundation-chip {
+  font-family: var(--sans); font-size: 12.5px; border-radius: 20px; padding: 4px 13px; cursor: pointer;
+  border: 1px solid var(--border-strong); background: var(--bg-panel); color: var(--text-dim);
+}
+.foundation-chip:hover { border-color: var(--accent); color: var(--accent-strong); }
+.foundation-chip.good { border-color: var(--green); color: var(--green); background: #f0f4ee; }
+.foundation-chip.weak { border-color: var(--amber); color: var(--amber); background: #faf5e8; }
