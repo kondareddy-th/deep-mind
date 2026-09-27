@@ -38,6 +38,44 @@ Your progress, typed answers, and photos are stored locally in your browser
 | 7 · Adaptation — the decision tree (prompt/RAG/fine-tune), LoRA & the low-rank bet, data as the real lever, preference tuning (DPO/KTO/GRPO), the toolchain, evaluating your own model | ✅ live |
 | 8 · Efficiency & the Frontier Mindset — where time goes (roofline), kernels, the DeepSeek teardown, distillation, the seven idea-generators, your research agenda (capstone) | ✅ live |
 
+## Two ongoing adaptive tracks
+
+Alongside the fixed curriculum there are two **tracks** that never run out, because nothing in
+them is written in advance:
+
+| Track | Target |
+|---|---|
+| **Architecture Design** | Staff-level system design — plus AI-product architecture and live, on-the-clock interview performance |
+| **Coding** | Ship products solo at review standard — plus building LLM features and interview-condition execution |
+
+Each track carries a **competency map** (10 dimensions apiece) and a per-competency mastery state
+with a forgetting curve: `retention = exp(-daysAway / strength)`. A competency you have nailed
+several times survives months away; one you fluffed last time is stale within days.
+
+Because sessions happen whenever you feel like it — nothing for two weeks, then a whole Saturday —
+the scheduler is **absence-aware** rather than scheduled. When you open a track it:
+
+1. measures what has decayed since your last visit and what you previously got wrong,
+2. opens with a **recall probe** on exactly that material if enough has slipped,
+3. reads the probe result to choose the next move — *reinforce*, *advance*, or *consolidate*,
+4. generates the challenge at runtime for that decision, at a difficulty set by your current level.
+
+You submit code or a design (typing, or a photo of your whiteboard), it is assessed against a
+per-competency rubric with quoted evidence, gaps, what an expert would have added, and the
+follow-up question you would face in the room — **and then you set the final score yourself**,
+because it is your mastery state and you know whether you understood it or fluked it.
+
+### Setting up the tracks
+
+The tracks call the Anthropic API from your browser with your own key. Either:
+
+- paste a key into **Settings** (stored in this browser's localStorage), or
+- put `ANTHROPIC_KEY=sk-ant-…` in a `.env` file at the project root.
+
+The `.env` path is injected **only by the dev server** — a production build always receives an
+empty string, so `npm run build` output can never carry your key, and `.env` is gitignored.
+Modules 1–8 need no key and work entirely offline.
+
 **The curriculum is complete: 48 lessons, 576 questions, 144 stop-and-think boxes, 18 interactive 3D visualizations.**
 
 Modules 1–6 teach how LLMs work, end to end. Modules 7–8 teach what practitioners and frontier

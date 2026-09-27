@@ -5,10 +5,16 @@ import Markdown from './lib/markdown.jsx'
 import Viz from './components/Viz.jsx'
 import Quiz from './components/Quiz.jsx'
 import { loadProgress, lessonStats, reviewQueue } from './lib/storage.js'
+import TrackView from './components/TrackView.jsx'
+import Settings from './components/Settings.jsx'
+import { TRACKS, trackById } from './tracks/model.js'
+import { loadTracks, trackState } from './tracks/store.js'
+import { trackSummary } from './tracks/scheduler.js'
 
 export default function App() {
-  const [view, setView] = useState({ page: 'dashboard' }) // or { page:'lesson', moduleId, lessonId }
+  const [view, setView] = useState({ page: 'dashboard' }) // or { page:'lesson'|'track'|'settings', ... }
   const [progress, setProgress] = useState(loadProgress)
+  const [allTracks, setAllTracks] = useState(loadTracks)
 
   const flat = useMemo(() => {
     const list = []
@@ -32,12 +38,47 @@ export default function App() {
         >
           Dashboard & Review queue
         </button>
+        <div className="module-header">Ongoing tracks · adaptive</div>
+        {TRACKS.map((t) => {
+          const s = trackSummary(t, trackState(allTracks, t.id))
+          return (
+            <button
+              key={t.id}
+              className={`nav-btn ${view.page === 'track' && view.trackId === t.id ? 'active' : ''}`}
+              onClick={() => {
+                setView({ page: 'track', trackId: t.id })
+                document.querySelector('.main')?.scrollTo(0, 0)
+              }}
+            >
+              <span className="lesson-row">
+                <span className={`dot ${s.overall > 0.6 ? 'done' : s.touched ? 'partial' : ''}`} />
+                {t.title}
+              </span>
+            </button>
+          )
+        })}
         {curriculum.map((mod) => (
           <ModuleNav key={mod.id} mod={mod} view={view} progress={progress} openLesson={openLesson} />
         ))}
+        <div className="module-header">Setup</div>
+        <button
+          className={`nav-btn ${view.page === 'settings' ? 'active' : ''}`}
+          onClick={() => setView({ page: 'settings' })}
+        >
+          Settings
+        </button>
       </nav>
       <main className="main">
         {view.page === 'dashboard' && <Dashboard progress={progress} openLesson={openLesson} />}
+        {view.page === 'settings' && <Settings />}
+        {view.page === 'track' && (
+          <TrackView
+            key={view.trackId}
+            track={trackById(view.trackId)}
+            allTracks={allTracks}
+            setAllTracks={setAllTracks}
+          />
+        )}
         {view.page === 'lesson' && (
           <LessonView
             key={view.lessonId}
