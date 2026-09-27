@@ -174,6 +174,122 @@ on a higher rung of that ladder — which is what a cache *is*.
 `,
     },
     {
+      type: 'example',
+      title: 'the full estimation chain — a 10-million-user app, from users to petabytes',
+      md: md`
+Estimation isn't a list of separate guesses. It's a **chain**: users produce requests, requests
+carry bytes, and bytes pile up as storage. Get the first link right and the others follow by
+multiplication. Here is the whole chain for a typical social-feed or light e-commerce app with
+**10 million monthly active users (MAU)**.
+
+~~~text
+Users ──► Requests/s ──► Bandwidth ──► Storage
+ (who)      (how often)    (how heavy)    (what stays)
+~~~
+
+### Link 1 — users → requests per second
+
+| step | arithmetic | result |
+|---|---|---|
+| monthly active users | given | 10,000,000 |
+| daily active users (~50% of MAU) | 10,000,000 × 0.5 | **5,000,000** |
+| requests per user per day | assume ~60 (page views, feed fetches, likes) | 60 |
+| total requests per day | 5,000,000 × 60 | **300,000,000** |
+| average requests per second | 300,000,000 ÷ 86,400 | **≈ 3,472 RPS** |
+| peak RPS (design for 2–3× average) | 3,472 × 2 to 3,472 × 3 | **≈ 7,000 – 10,000 RPS** |
+
+Check the shortcut from above: 300,000,000 ÷ 100,000 = **3,000 RPS**. The exact answer is 3,472, so the
+shortcut is about 14% low. That's well inside "a factor of a few" and you can do it in your head.
+
+**Why a peak factor?** Traffic isn't flat. Evenings, lunch breaks, and one viral post all bunch
+requests together. A system sized for the *average* falls over every evening. Capacity is set by the
+peak; cost is closer to the average.
+
+### Link 2 — requests → bandwidth
+
+**First, what bandwidth *is*.** Bandwidth is **bytes moving over the network per second**. Think of
+it as the width of the pipe between your servers and your users. It's easy to confuse with two other
+things:
+
+| resource | what it measures | what runs out when it's too small |
+|---|---|---|
+| **bandwidth** | bytes/second through the network card and links | responses queue up and pages load slowly, even when the CPU is idle |
+| **RAM** | bytes held in memory *at one moment* | the process can't hold more connections or cache, and it crashes or swaps |
+| **concurrency** | requests being worked on *at the same time* | new requests wait for a free worker |
+
+These three are connected by a small, useful law (Little's law): **requests in flight = RPS × time
+per request**. At 3,472 RPS with 100 ms per request, about 347 requests are in flight at any moment.
+That number sizes your workers and RAM. Bandwidth is the separate question of how many *bytes* those
+requests push out.
+
+Assume an **average response of 200 KB**, a mix of JSON text and small compressed images.
+
+$$
+3{,}472 \text{ req/s} \times 200 \text{ KB} = 694{,}400 \text{ KB/s} \approx 694 \text{ MB/s}
+$$
+
+Network links are rated in **bits**, not bytes, so multiply by 8:
+
+$$
+694 \text{ MB/s} \times 8 \approx 5.55 \text{ Gbps (continuous, on average)}
+$$
+
+At the 3× peak that's about **17 Gbps**, more than a standard 10 Gbps server network card can carry.
+The arithmetic has already told you that one machine can't serve this traffic, before you've drawn
+a single box.
+
+**Over a month:**
+
+$$
+694 \text{ MB/s} \times 86{,}400 \text{ s/day} \times 30 \text{ days} \approx 1.8 \times 10^{9} \text{ MB} = 1.8 \text{ PB/month}
+$$
+
+That's **1.8 petabytes** of data leaving your servers every month. At an illustrative cloud egress
+price of \$0.05 per GB, that's 1,800,000 GB × \$0.05 ≈ **\$90,000 a month** for bandwidth alone.
+
+### Link 3 — uploads → storage
+
+Assume **10% of daily users** post something each day, averaging **500 KB** per upload.
+
+| step | arithmetic | result |
+|---|---|---|
+| daily uploaders | 5,000,000 × 0.10 | 500,000 |
+| daily storage growth | 500,000 × 500 KB | **250 GB/day** |
+| yearly storage growth | 250 GB × 365 | **≈ 91 TB/year** |
+| with 3 replicas for durability | 91.25 TB × 3 | **≈ 274 TB/year** |
+
+The raw figure leaves out backups and redundancy. Real systems usually keep ~3 copies, so the disk
+you actually buy is about three times the data you store.
+
+### What the numbers decide
+
+This is the payoff. Every result above turns into a design decision:
+
+| number | what it forces |
+|---|---|
+| ~10,000 peak RPS | many stateless app servers behind a load balancer |
+| ~17 Gbps at peak, mostly images | a **CDN**: serve image bytes from edge caches, not your own servers |
+| ~\$90k/month of egress | the CDN pays for itself, and image compression becomes a finance decision |
+| ~274 TB/year and growing | **object storage** (S3-style) for media, not database disks |
+| 250 GB/day of new files | uploads go straight to object storage; the database only stores metadata |
+
+### Sensitivity — which assumption matters most?
+
+Here's a habit worth building: ask which assumption, if wrong, would change the design most. In this
+example it's the **200 KB average response**. Suppose images go through a CDN and your servers
+return only ~10 KB of JSON per request:
+
+$$
+3{,}472 \times 10 \text{ KB} \approx 35 \text{ MB/s} \approx 0.28 \text{ Gbps}
+$$
+
+Origin bandwidth drops **20×**, and a single network card handles it comfortably. One assumption
+separated "this needs a CDN strategy" from "this is a non-issue." When you give an estimate, **say
+your assumptions out loud**, so that anyone who disagrees with a number can see which conclusion it
+changes.
+`,
+    },
+    {
       type: 'ponder',
       question: md`The ladder says memory is roughly **1,000× faster** than SSD. So why doesn't every
 system just keep all its data in RAM and skip disks entirely? Think of at least three reasons before
