@@ -17,7 +17,7 @@ All you can feel is the **tilt of the ground under your boots**.
 That is training, exactly. The mountain is the loss surface $L(\theta)$: every possible setting of
 the model's knobs is a place you could stand, and the altitude at that place is how wrong the model
 is there. The tilt under your boots is the gradient — lesson 1.3 went to great lengths to hand it
-to you, all seven billion components of it, for the price of about two forward passes. And the
+to you, all seven billion components of it, for the price of about three forward passes. And the
 valley floor is a model that predicts text well.
 
 So: feel the slope, step downhill, repeat. What could possibly be interesting about that?
@@ -535,9 +535,9 @@ $$7\times10^{10} \text{ params} \;\times\; 2 \text{ states} \;\times\; 4 \text{ 
 The parameters themselves (bf16, 2 bytes) are 140 GB; the gradients, another 140 GB; the fp32
 master copy of the weights that mixed-precision training keeps, another 280 GB. Total: about
 $1.1$ terabytes of training state — of which the *optimizer's memory* is the largest single item —
-before storing one activation. And the biggest GPU you can buy holds 80 GB.
+before storing one activation. An H100 GPU holds 80 GB (the newer B200 holds 192 GB).
 
-Divide: $1{,}120 / 80 = 14$ GPUs, minimum, just to *hold the state motionless* — never mind
+Divide: $1{,}120 / 80 = 14$ H100s, minimum (or 6 of the biggest B200s), just to *hold the state motionless* — never mind
 computing with it. The optimizer, not the model, dominates training memory, which is why the state
 must be sliced up and scattered across hundreds of GPUs, and why "how do we shard the optimizer?"
 is a foundational systems question rather than an afterthought. That single number — $560$ GB for
@@ -797,7 +797,7 @@ the random weights and forget the $\hat{v}$ and first-step arguments — a concr
       explain: md`$7\times10^{10} \times 2 \times 4$ bytes $= 5.6\times10^{11}$ bytes $= 560$ GB.
 Feel the absurdity properly: over half a terabyte of pure *bookkeeping* — running averages whose
 only job is to remember which way gradients have been pushing — dwarfing the 140 GB the bf16
-weights themselves occupy, on hardware that tops out at 80 GB per GPU. One back-of-envelope
+weights themselves occupy, on GPUs that hold 80 GB (H100) to 192 GB (B200) each. One back-of-envelope
 multiplication, and you've derived why distributed sharding (Module 4) is not an optimization but
 a precondition. Estimates like this catch more research-plan errors than any amount of code.`,
     },

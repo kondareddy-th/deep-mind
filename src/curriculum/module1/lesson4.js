@@ -16,7 +16,7 @@ export default {
 
 Take the most capable AI system you know of — Claude, GPT-4, pick one. Now strip it. Take away the
 data centers. Take away the GPUs. Take away the hundred-odd layers, the attention heads, the
-trillion learned parameters, the hype, the discourse. Keep stripping until nothing implementation-
+hundreds of billions of learned parameters (frontier labs don't publish exact sizes), the hype, the discourse. Keep stripping until nothing implementation-
 shaped remains, and ask:
 
 > What **kind** of mathematical object is left? Not "how does it work" — what *is* it?
@@ -283,7 +283,8 @@ atoms: $10^{160}$. Square it **again**: $10^{320}$. You are *still* short of the
 of $10^{180}$. The table doesn't fit in physics.
 
 And it gets worse: you couldn't fill it even if it fit. All the text humanity has ever produced is
-maybe $10^{13}$–$10^{14}$ tokens — so at most $10^{14}$ of the $10^{500}$ rows would contain even a
+maybe $10^{14}$–$10^{15}$ tokens (published estimates of the stock of public human text are in the
+hundreds of trillions) — so at most about $10^{15}$ of the $10^{500}$ rows would contain even a
 single observation. Almost every $100$-token context that will ever be typed, *including the one
 you are reading right now*, has never occurred before in history. A lookup table has literally
 nothing to look up.
@@ -292,7 +293,7 @@ The conclusion is forced, and it is the founding move of the whole field: replac
 **function** — a formula with a few billion *shared* parameters that *computes* any row on demand
 instead of storing all rows. Sharing is the magic word: because the same parameters serve every
 context, patterns learned from contexts that did occur automatically extend to the
-$10^{500} - 10^{14}$ that didn't. That's **generalization**, and it isn't optional — it's the only
+$10^{500} - 10^{15}$ that didn't. That's **generalization**, and it isn't optional — it's the only
 way the arithmetic works out. A transformer is nothing more or less than the best functional form
 we currently know for this function.`,
     },
@@ -727,7 +728,7 @@ arithmetic on paper.`,
       explain: md`$100{,}000 = 10^{5}$, so $100{,}000^{100} = (10^{5})^{100} = 10^{500}$: exponents
 multiply. For scale: atoms in the observable universe $\approx 10^{80}$. Square it: $10^{160}$.
 Square it *again*: $10^{320}$ — still short of the table by $10^{180}$. Meanwhile humanity's entire
-written output is about $10^{13}$–$10^{14}$ tokens, so essentially every row would be empty anyway.
+written output is roughly $10^{14}$–$10^{15}$ tokens, so essentially every row would be empty anyway.
 This one exponent is the founding argument of the field: next-token prediction must be a *function*
 with shared parameters, and generalization to never-seen contexts isn't a luxury — it's forced.`,
     },

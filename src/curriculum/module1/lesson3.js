@@ -27,9 +27,9 @@ How could you possibly answer seven billion questions, a million times over?
 
 The honest first idea is the right place to start: *wiggle a knob and watch what happens to the
 loss*. Hold onto that idea — it is exactly right about **what to measure**, and catastrophically
-wrong about **how to measure it**, by a factor of about three and a half billion. This lesson does
+wrong about **how to measure it**, by a factor of about two billion. This lesson does
 two things: makes wiggle-and-watch precise, and then finds the trick that answers all seven billion
-questions for the price of about two.
+questions for the price of about three.
 
 ## One knob first: wiggle it and watch
 
@@ -277,10 +277,11 @@ cost per update? Where does the number of knobs show up in each count?`,
 $7{,}000{,}000{,}001$ forward passes for a single update. The knob count multiplies the cost
 directly.
 
-**Plan B:** the forward pass costs $1$. The backward walk visits each node once, doing a
-multiply-and-add per edge — roughly the same arithmetic as the forward pass that built those edges
-in the first place. Call it $\approx 2$ forward passes for **the entire seven-billion-entry answer
-sheet**. The knob count never enters: every knob hangs off the same graph, and the walk covers the
+**Plan B:** the forward pass costs $1$. The backward walk visits each node once. At every
+multiply $z = w \cdot x$ it needs *two* local ratios, one to hand blame to the weight $w$ and one to
+pass it on to the input $x$, so it does about twice the arithmetic of the forward pass. Call it
+$\approx 3$ forward passes for **the entire seven-billion-entry answer sheet** (this 1 + 2 split is
+exactly the "$6ND$" rule you'll meet in Module 5: $2ND$ forward, $4ND$ backward). The knob count never enters: every knob hangs off the same graph, and the walk covers the
 graph once.
 
 Why can one sweep serve everyone? Look back at the example: $\partial L/\partial \hat{y} = -4$ was
@@ -290,7 +291,7 @@ from a single source, sharing every intermediate product — like one rumor trac
 whole gossip network at once. Training is many-knobs-one-loss, and the backward sweep is
 tailor-made for exactly that shape.
 
-The speedup is Plan A over Plan B: $7 \times 10^9 / 2 = 3.5$ **billion times**. This is not an
+The speedup is Plan A over Plan B: $7 \times 10^9 / 3 \approx 2.3$ **billion times**. This is not an
 optimization; it is the difference between deep learning existing and not. When you call
 *loss.backward()* in PyTorch, this sweep — reverse-mode automatic differentiation — is what runs.`,
     },
@@ -315,7 +316,8 @@ $$1.1^{100} \approx 13{,}780$$
 
 The gradient **explodes**; one update flings the weights into nonsense and the loss becomes NaN.
 Notice how narrow the safe corridor is: $0.9$ and $1.1$ are both within ten percent of $1$, and one
-hundred layers turned that ten percent into factors of $37{,}000$ apart. Nobody *chooses* these
+hundred layers turned that ten percent into factors about **500 million** apart
+($13{,}780 / 0.0000266$). Nobody *chooses* these
 factors — they emerge from the weights and drift as training proceeds; depth exponentiates the
 drift. (Remember the sigmoid's derivative maxing out at $1/4$? Pre-2015 sigmoid networks multiplied
 in a factor $\le 1/4$ *per layer* — $0.25^{10} \approx 10^{-6}$ — which is why deep networks were
@@ -378,8 +380,8 @@ work. That is why the humble $+\,x$ appears in every transformer diagram you wil
    evaluated where the mechanism currently sits — hence cached forward values, hence training's
    memory bill.
 4. **Backpropagation:** the chain rule organized over the computation graph. One forward sweep, one
-   backward sweep, *all* seven billion sensitivities for $\approx 2$ forward passes — versus seven
-   billion passes for wiggle-and-watch. A $3.5$-billion-fold difference that is the reason the
+   backward sweep, *all* seven billion sensitivities for $\approx 3$ forward passes — versus seven
+   billion passes for wiggle-and-watch. A roughly $2$-billion-fold difference that is the reason the
    field exists.
 5. **Deep chains are treacherous:** $0.9^{100} \approx 0.0000266$ vanishes, $1.1^{100} \approx
    13{,}780$ explodes — and the residual connection's factor $1 + F'$ builds the highway that lets
@@ -612,7 +614,7 @@ residual block, and the phrase "product of sensitivities".`,
    compounds geometrically: $0.9^{100} \approx 0.0000266$ (vanished — early layers receive
    essentially no signal and stop learning), while $1.1^{100} \approx 13{,}780$ (exploded — one
    update destroys the weights). Both factors sit within $10\%$ of $1$; a hundred layers turn that
-   into a $37{,}000{,}000$-fold spread. At least one such computed number must appear.
+   into a roughly $500{,}000{,}000$-fold spread. At least one such computed number must appear.
 3. **The residual derivative.** Differentiating $\mathbf{h}_{l+1} = \mathbf{h}_l + F(\mathbf{h}_l)$
    gives a per-layer factor of $1 + F'$ (in vector form $I + J_F$). This must appear explicitly.
 4. **Why that fixes it.** Expanding $\prod_l (1 + F_l')$ yields, among its terms, the all-ones

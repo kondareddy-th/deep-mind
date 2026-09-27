@@ -152,9 +152,9 @@ per-flip average approaches $0.469$. Hold that thought; it is the seed of all da
 > vocabulary, and its entropy is the model's own uncertainty meter. After *"The Eiffel"* the
 > distribution collapses onto *Tower* — entropy near $0$ bits. At the start of a fresh sentence,
 > hundreds of continuations are live — several bits. And a freshly initialized model with vocabulary
-> $50{,}257$ is near-uniform: $H = \ln 50{,}257 \approx 10.8$ nats, which is why every pretraining
-> log ever plotted starts with the loss hovering at $10.8$. You can now read the first pixel of
-> every loss curve.
+> $50{,}257$ is near-uniform: $H = \ln 50{,}257 \approx 10.8$ nats, which is why a GPT-2-style
+> pretraining run's loss curve starts near $10.8$ (a model with a 128k vocabulary starts near
+> $\ln 128{,}000 \approx 11.8$). You can now read the first pixel of every loss curve.
 `,
     },
     {
@@ -427,8 +427,7 @@ genuine secrets.
 — the irreducible surprise per character — but computers can barely add. There is no model to
 evaluate a loss on. What could you possibly use as your predictor?`,
       answer: md`**A human.** Shannon's guessing game: cover a text, reveal it one letter at a
-time, and before each reveal have a person (famously his wife, Betty) guess the next letter until
-they get it right. Count the guesses. A skilled reader guesses most letters on the first try —
+time, and before each reveal have a person guess the next letter until they get it right. Count the guesses. A skilled reader guesses most letters on the first try —
 English is *that* predictable — and from the guess statistics Shannon squeezed out an estimate of
 roughly **1 bit per character** (his brackets: about $0.6$ to $1.3$). Sit with the trick: the human
 brain was deployed as the probability model $q$, and the guessing game charged it the cross-entropy.

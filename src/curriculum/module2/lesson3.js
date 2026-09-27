@@ -110,8 +110,8 @@ modest (a third of the QKV bill), and you'd want an output mixer anyway.
 So the deep accounting fact is: **you don't pay for conversations — you pay for width**, and width
 can be sliced into conversations nearly for free. (Not *infinitely*: 4096 heads of 1 dimension each
 would score "agreement" with single numbers — no room left to express a *direction* worth caring
-about. Trained models across the industry cluster around 64–128 dimensions per head; empirically,
-that's about the room one conversation needs.)`,
+about. Trained models across the industry mostly use 64–128 dimensions per head, with a few (such as
+Google's Gemma) at 256; empirically, that's about the room one conversation needs.)`,
     },
     {
       type: 'text',
@@ -259,8 +259,9 @@ Read the algorithm in words: *find the last time my current situation occurred, 
 happened next, and bet on it happening again.* That's a completely general inference strategy
 compressed into two softmax rows — and when researchers watch models train, induction heads snap
 into existence over a short window (a visible phase change), and the model's ability to exploit its
-context jumps at the same moment. Ablate the handful of induction heads afterwards and in-context
-learning collapses. A cartoon this clean, causally verified inside a real model, is rare treasure —
+context jumps at the same moment. In small attention-only models, ablating the induction heads
+removes most of that in-context learning; in large models the evidence is mostly this striking
+timing correlation rather than a clean ablation. A cartoon this clean, causally verified inside a real model, is rare treasure —
 Module 6 puts the whole toolkit for finding such circuits in your hands.
 `,
     },
@@ -317,8 +318,8 @@ fit into one step.`,
 Count the conversations in real machines. Llama-7B: $32$ heads $\times\, 32$ layers $= 1024$
 attention heads, each 128-dimensional. GPT-3: $96 \times 96 = 9216$ heads — and $12{,}288 / 96 =
 128$ dimensions each. Different labs, different years, different scales — and both landed on
-128-dimensional conversations, because that's roughly the room a niche needs (the industry's whole
-observed range is about 64–128). When you read a config file, the head count is no longer trivia:
+128-dimensional conversations, because that's roughly the room a niche needs (most models use 64–128;
+a few, such as Gemma, use 256). When you read a config file, the head count is no longer trivia:
 it's *how many parallel conversations per layer*, at *zero* extra projection cost — you derived
 that.
 
@@ -436,8 +437,8 @@ distinguish them, so any division of labor is *emergent*, and the names are appl
 peering inside. Option B tempts because the names sound architectural — "previous-token head" reads
 like a component from a datasheet. Option C projects supervised habits onto self-supervised
 training — nobody labels anything. Option D is the sophisticated trap: many heads *are* messy or
-prunable, but ablation studies show causally-verified specialists (delete a few induction heads and
-in-context learning craters), so "just storytelling" overshoots the skepticism.`,
+prunable, but ablation studies show causally-verified specialists (in small models, deleting the
+induction heads removes most in-context learning), so "just storytelling" overshoots the skepticism.`,
     },
     {
       id: 'm2-l3-q6',

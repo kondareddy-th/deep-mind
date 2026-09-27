@@ -83,8 +83,8 @@ three: use the curve, respect the curve, don't mistake the curve for a theory.`,
 
 Now the drama. The law has *two* knobs, $N$ and $D$, but you pay for them with *one* budget:
 compute. The accounting identity (derived in one line: each token's forward+backward touches each
-parameter with ~6 multiply-accumulates — 2 forward, 4 backward, from 1.3's roughly-two-forward
-costing):
+parameter with ~3 multiply-accumulates, i.e. ~6 FLOPs, since one multiply-add is 2 FLOPs: 2 FLOPs
+forward, 4 backward, because 1.3 showed the backward pass costs about twice the forward):
 
 $$C \approx 6\,N\,D \quad \text{FLOPs}$$
 

@@ -335,7 +335,7 @@ dropped forever. Attention keeps the whole page open: every token's vector remai
 hop, at any time. So the honest comparison is not "attention vs. how humans read" — it's that
 attention takes the *recovery move* humans deploy when reading gets hard (look back, anywhere,
 anytime) and makes it the primitive, applied at every token. Our working memory is famously about
-seven items; we invented re-reading to survive it. Attention is re-reading, institutionalized.`,
+seven items (modern estimates say closer to four); we invented re-reading to survive it. Attention is re-reading, institutionalized.`,
     },
     {
       type: 'text',

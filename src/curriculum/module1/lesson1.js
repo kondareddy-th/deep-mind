@@ -100,7 +100,10 @@ Pick that arrow up, set its tail on *woman*, and its head lands near... *queen*:
 
 $$\mathbf{v}_{\text{king}} - \mathbf{v}_{\text{man}} + \mathbf{v}_{\text{woman}} \approx \mathbf{v}_{\text{queen}}$$
 
-Nobody programmed that. It fell out of training. **Relationships between meanings become directions
+Nobody programmed that. It fell out of training. (An honest footnote: in classic word2vec vectors the
+single nearest word to that sum is usually *king* itself, so the standard analogy test excludes the
+three input words before looking. With them excluded, *queen* comes out on top. The effect is real,
+just less clean than the famous slogan.) **Relationships between meanings become directions
 in the space.** Keep this in your pocket — it's the first real evidence that geometry is the right
 language for meaning.
 

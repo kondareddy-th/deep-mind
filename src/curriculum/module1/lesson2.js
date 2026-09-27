@@ -349,7 +349,7 @@ rank-2 projection keeps 2 of 3, hence $\det = 0$.
 > representations toward rank *one*: every token collapses toward the same vector, and the model can
 > no longer tell its inputs apart. Residual streams and feed-forward layers are the anti-crush
 > plumbing that keeps representational rank — that is, information — alive. When you meet residual
-> connections in Module 3, remember the flattened cube.
+> connections in lesson 2.5, remember the flattened cube.
 `,
     },
     {
