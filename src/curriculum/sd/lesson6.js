@@ -98,7 +98,8 @@ def worker():                            # CONSUMER: runs forever, outside any r
     while True:
         msg = jobs.get()                 # blocks until there is a message
         handle(msg)                      # the slow part: 0.5 to 2 seconds
-        jobs.task_done()                 # the "ack"
+        jobs.task_done()                 # stands in for the "ack" (an in-memory queue
+                                         # never redelivers; a real broker does)
 
 for _ in range(3):                       # three workers, running in parallel
     threading.Thread(target=worker, daemon=True).start()

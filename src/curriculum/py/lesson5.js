@@ -955,8 +955,10 @@ questions of *when* something is evaluated and *how many copies* exist.
 You've now seen decorators from the inside, which demystifies code you already met: \`@property\`,
 \`@classmethod\`, and \`@dataclass\` from Py.3–Py.4 are all just functions that take the thing below them
 and return something new. (\`@dataclass\` takes a *class* rather than a function — same idea.) And
-libraries you'll use soon are full of them: \`@torch.no_grad()\` is a decorator factory, exactly the
-three-layer shape you built for \`retry\`.
+libraries you'll use soon are full of them. \`@torch.no_grad()\` has the same *call shape* as
+\`@retry(times=3)\`: the parentheses run first and produce the decorator, which is then applied to
+your function. (Under the hood PyTorch builds it with a class whose instances are callable, not three
+nested functions, but from the outside the two work the same way.)
 
 ## What you now own
 

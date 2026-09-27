@@ -52,8 +52,9 @@ needs almost none. **What is the second version doing differently?**
 
 A quick size check on the first version, so you feel the problem. Say the average line is about 100
 characters. Then 40 GB is roughly 400 million lines. \`readlines()\` turns every one into a Python
-string, and each string carries about 50 bytes of bookkeeping on top of its characters, plus an
-8-byte slot in the list pointing at it. That's about 400 million × (100 + 50 + 8) bytes ≈ **63 GB**.
+string, and each string carries about 40 bytes of bookkeeping on top of its characters
+(\`sys.getsizeof("")\` is 41 on current Python), plus an 8-byte slot in the list pointing at it. That's
+about 400 million × (100 + 41 + 8) bytes ≈ **60 GB**.
 Not a chance.
 
 The second version never builds that list. It asks the file for *one line*, runs the loop body,
@@ -293,7 +294,7 @@ def squares(n):
 big_list = [i * i for i in range(1_000_000)]   # eager: a million squares, now
 lazy = squares(100_000_000)                      # lazy: zero squares, so far
 
-print(sys.getsizeof(big_list))   # 8000056   (about 8 MB)
+print(sys.getsizeof(big_list))   # 8448728   (about 8.4 MB)
 print(sys.getsizeof(lazy))       # about 200 (exact number varies by Python version)
 ~~~
 
@@ -301,8 +302,9 @@ Two things to notice, and the second one is sneaky:
 
 1. The generator for **100 million** squares is about 200 bytes. It stores the paused function —
    its current \`i\`, where it's stopped — and nothing else. Make it a billion; still about 200 bytes.
-2. That 8 MB for the list is **only the list's slots** — 8 bytes per slot, each one pointing at an
-   integer object that lives somewhere else. \`sys.getsizeof\` doesn't count the things pointed to.
+2. That 8.4 MB for the list is **only the list's slots** — 8 bytes per slot (plus a little spare room
+   a growing list keeps for future appends), each one pointing at an integer object that lives
+   somewhere else. \`sys.getsizeof\` doesn't count the things pointed to.
    Each integer object is another 28 bytes or so (\`sys.getsizeof(12345)\` is 28).
 
 So the true cost of a list of 100 million ints is roughly:
@@ -384,7 +386,7 @@ the service name, count per service.
 The tempting way is to do each step as a list:
 
 ~~~python
-lines = open("server.log").readlines()             # 63 GB list
+lines = open("server.log").readlines()             # ~60 GB list
 errors = [l for l in lines if " ERROR " in l]      # another big list
 services = [l.split()[3] for l in errors]          # another list
 ~~~
@@ -1176,7 +1178,7 @@ print(averages)
 independent of the file's size.
 
 **(4)** Turning the parse stage or an error-filter stage into a list comprehension would load every
-line (or every error) into memory at once — the 63 GB problem again.
+line (or every error) into memory at once — the 60 GB problem again.
 
 Partial credit: collecting all latencies into lists and averaging at the end (correct but memory grows
 with the file), or closing the file before consuming the generator.`,

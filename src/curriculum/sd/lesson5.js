@@ -257,8 +257,10 @@ class LRUCache:
             self.data.popitem(last=False)  # evict from the "oldest" end
 ~~~
 
-Every operation is $O(1)$ — constant time regardless of cache size — which is why LRU is the default in
-most caches.
+Every operation is $O(1)$ — constant time regardless of cache size — which is why LRU (or a cheap
+approximation of it) is the most common eviction policy. Memcached uses LRU out of the box. Redis is a
+useful surprise: its *default* policy is \`noeviction\` (refuse new writes when memory is full), so for a
+cache you must set \`maxmemory-policy allkeys-lru\` (or \`allkeys-lfu\`) yourself.
 
 **Two alternatives worth knowing:**
 
@@ -433,14 +435,16 @@ def get_coalesced(key, load_from_db):
         if leader:
             event = inflight[key] = threading.Event()
     if leader:
-        value = load_from_db(key)          # only ONE request per key does this
-        cache.set(key, value, ex=300)
-        with inflight_lock:
-            del inflight[key]
-        event.set()                        # wake the waiters
-        return value
+        try:
+            value = load_from_db(key)      # only ONE request per key does this
+            cache.set(key, value, ex=300)
+            return value
+        finally:                           # runs even if the load raises, so waiters are never stuck
+            with inflight_lock:
+                del inflight[key]
+            event.set()                    # wake the waiters
     event.wait(timeout=1.0)                # everyone else waits for the leader
-    return cache.get(key)
+    return cache.get(key)                  # None if the leader failed or was slow: caller falls back
 ~~~
 
 (This coalesces within one server. Across 40 servers you'd still get up to 40 queries — fine — or use a
@@ -505,7 +509,7 @@ IDs at 20,000 per second, gets a **0% hit rate on purpose** and walks straight p
 - **Cache the absence.** Store a "not found" marker (\`product:99999999 → NULL\`) with a short TTL like
   60 s. Repeats now hit.
 - **A Bloom filter in front** — a compact data structure that can answer "this key *definitely does not*
-  exist" using a few bits per key. Keys it rules out never reach the cache or the database. (Random IDs
+  exist" using about 10 bits per key (for a ~1% false-positive rate). Keys it rules out never reach the cache or the database. (Random IDs
   from an attacker are almost all ruled out.)
 - **Validate input** — reject IDs outside the valid range before looking anything up.
 
@@ -653,7 +657,8 @@ minute. And the freshness requirement — readers see new results within about a
 8. **Sizing:** cache the hot working set (80/20 or steeper), add 1.5–2× overhead, stop when the next
    gigabyte stops mattering — and the same ideas power prompt and response caching for LLMs.
 
-Next: SD.6 — when one machine isn't enough, how data is split and copied across many.
+Next: SD.6. Some work is too slow to do while the user waits, so we'll hand it to a queue and let
+it happen in the background.
 `,
     },
   ],
@@ -685,7 +690,8 @@ What is the effective (average) latency in milliseconds?`,
       explain: md`$L_{eff} = 0.95 \times 1 + 0.05 \times 30 = 0.95 + 1.5 = 2.45$ ms. Notice that the 5% of
 misses contribute 1.5 ms — more than the 95% of hits combined. (If you add the cache check to each miss,
 $0.05 \times 31 = 1.55$, giving 2.5 ms — also within tolerance.) To make this faster, the lever is the miss
-rate, not the cache speed: halving cache latency saves 0.475 ms; halving the miss rate saves 0.75 ms.`,
+rate, not the cache speed: halving cache latency saves 0.475 ms; halving the miss rate (5% → 2.5%) saves
+0.725 ms ($2.45 - (0.975 \times 1 + 0.025 \times 30) = 2.45 - 1.725$).`,
     },
     {
       id: 'sd-l5-q3',

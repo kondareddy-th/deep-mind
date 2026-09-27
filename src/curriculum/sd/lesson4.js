@@ -217,6 +217,11 @@ But the phone book teaches the catch. A book sorted by (last name, first name) c
 It **cannot** help you find everyone whose *first* name is Priya — Priyas are scattered through every
 last name. This is the **leftmost-prefix rule**: a composite index on (A, B, C) can serve queries on A,
 on A and B, or on A, B and C — any *prefix* starting from the left — but not B alone or C alone.
+
+(One modern refinement: some engines — Oracle, MySQL 8.0.13+, PostgreSQL 18+ — can do a **skip scan**:
+for a query on B alone, they jump to each distinct value of A in turn and search for B inside it. That's
+fast when A has only a few distinct values, and useless when A has millions. So the rule is still the
+one to design by; a skip scan is a partial rescue, not a replacement for the right index.)
 `,
     },
     {
@@ -236,8 +241,11 @@ start of 'IN' and read until the country changes.
 
 **3 — no.** \`city\` is the *second* column; Chennai entries are sorted within each country but not
 gathered together. (There *could* be a "Chennai" under several countries, and they'd be far apart.) The
-database must scan — either the whole table or the whole index. Same as hunting for every "Priya" in a
-phone book sorted by last name.
+database can't jump straight to the answer. Classically it must scan the whole table or the whole index,
+like hunting for every "Priya" in a phone book sorted by last name. Newer engines with **skip scan** do
+better here, because \`country\` has only ~200 distinct values: they can do ~200 small jumps ("IN,
+Chennai?", "US, Chennai?", …), roughly $200 \times 28$ comparisons, not a full scan. That trick
+only works because the leading column has few distinct values.
 
 The tempting mistake is to think an index "contains" the city column, so it must help any query about
 cities. Containing a column isn't enough; the column has to be at the **front of the sort order** for
@@ -343,6 +351,13 @@ if it never started. Relational databases promise four properties for transactio
 | **I**solation | concurrent transactions don't see each other's half-done work | two transfers can't both spend the same 150 |
 | **D**urability | once it says "committed," it survives a crash | the power cut after COMMIT loses nothing |
 
+**A caution about the I.** How much isolation you actually get depends on the **isolation level**, and
+most databases do *not* default to the strongest one. Postgres and Oracle default to *Read Committed*,
+which is fast but lets two transactions both read "balance = 150" and both decide there's enough money.
+Code that *reads, checks, then writes* needs one of: a locking read (\`SELECT … FOR UPDATE\`), a
+conditional write (\`UPDATE … SET balance = balance - 100 WHERE id = 1 AND balance >= 100\`, then check
+that one row changed), or the \`SERIALIZABLE\` level (retrying when the database aborts a conflict).
+
 "Both or neither" is **atomicity** — the letter people most often misattribute to consistency, because
 the word "consistent" sounds like it. Keep them apart: atomicity is about *all-or-nothing*; consistency
 is about *rules staying true*.
@@ -442,8 +457,9 @@ sync problem mostly disappears here** — a receipt *should* show the restaurant
 ordered. Denormalization is cheapest when the copy is a snapshot that's supposed to be frozen.
 
 Checks on the numbers: 25,000 GPS writes/s is ~2 billion rows a day ($25{,}000 \times 86{,}400 = 2.16 \times 10^9$).
-That volume is precisely what wide-column stores are built for — and would bury a single Postgres
-server's write capacity and disk within weeks.
+That volume is precisely what wide-column stores are built for. A single well-tuned Postgres server can
+take 25,000 small inserts/s, but only near its limit. Meanwhile ~2 billion rows × ~100 B ≈ **200 GB a
+day** fills its disk within weeks, and every index on the table slows the write rate further.
 `,
     },
     {
@@ -514,7 +530,8 @@ asynchronous**. Once again: a tradeoff you name, not a free lunch.
 Replication copies *all* the data to every machine. That fixes read load, but not two other walls:
 
 - **Too much data:** 80 TB won't fit on one machine's disks.
-- **Too many writes:** 50,000 writes/s exceed what one leader can apply.
+- **Too many writes:** past some rate (often tens of thousands of writes/s, depending on hardware and
+  indexes), one leader can't apply them all.
 
 The fix is **sharding** (also called **partitioning**): split the rows *across* machines, so each
 machine — each **shard** — holds only a slice. Every row goes to exactly one shard, chosen by a

@@ -214,8 +214,9 @@ doesn't know whether repeating is harmless.
 **The surprise:** idempotent does not mean *order-independent*. Suppose you send \`PUT /profile
 {name: "A"}\`, it times out, then you send \`PUT /profile {name: "B"}\` — and *then* the delayed first
 request finally arrives. The server now says "A." Each request was idempotent; the *sequence* still went
-wrong. Real APIs handle this with version numbers ("only apply if the current version is 7") — a
-preview of the concurrency problems in SD.6.
+wrong. Real APIs handle this with version numbers ("only apply if the current version is 7"), a
+technique called **optimistic concurrency**: the server rejects a write made against an
+out-of-date version, and the client re-reads and tries again.
 
 So the default rule is: **retry idempotent requests freely; never blindly retry a non-idempotent one.**
 The rest of this lesson shows how to make \`POST\` *safe to retry anyway* — which is what the payments
@@ -274,7 +275,7 @@ methods (verbs), rather than inventing a new URL for every action. Its rules of 
 - Responses use **status codes honestly** — not \`200 OK\` with \`{"error": "not found"}\` in the body.
 - Each request carries everything the server needs (who you are, what you want); the server keeps no
   per-client memory between requests. This is called being **stateless**, and it's what lets any of
-  many servers answer any request — the foundation of horizontal scaling in SD.5.
+  many servers answer any request — the foundation of horizontal scaling in SD.7.
 `,
     },
     {

@@ -168,8 +168,10 @@ use them in every design:
 | round trip across continents | ~100–150 milliseconds |
 | a single well-tuned server | thousands to tens of thousands of simple requests per second |
 
-The latency ladder is worth staring at: memory, SSD, network, and cross-continent each differ by
-roughly **1,000×**. Almost every performance decision in system design is about keeping the hot path
+The latency ladder is worth staring at, and the gaps between rungs aren't equal. Memory → SSD is about
+**1,000×**. SSD → a round trip inside the datacenter is only about **5×**. Datacenter → cross-continent
+is another **200–300×**, set by the speed of light, not by hardware. End to end, a cross-continent
+round trip is about a **million times** slower than a memory read. Almost every performance decision in system design is about keeping the hot path
 on a higher rung of that ladder — which is what a cache *is*.
 `,
     },
@@ -234,9 +236,10 @@ $$
 694 \text{ MB/s} \times 8 \approx 5.55 \text{ Gbps (continuous, on average)}
 $$
 
-At the 3× peak that's about **17 Gbps**, more than a standard 10 Gbps server network card can carry.
-The arithmetic has already told you that one machine can't serve this traffic, before you've drawn
-a single box.
+At the 3× peak that's about **17 Gbps**. That's more than a common 10 Gbps server link can carry.
+Bigger 25–100 Gbps cards exist, but then one machine is also doing all the CPU work behind ~10,000
+requests/s, and it's a single point of failure. The arithmetic has already told you this traffic
+should be spread across machines, before you've drawn a single box.
 
 **Over a month:**
 
@@ -269,7 +272,7 @@ This is the payoff. Every result above turns into a design decision:
 |---|---|
 | ~10,000 peak RPS | many stateless app servers behind a load balancer |
 | ~17 Gbps at peak, mostly images | a **CDN**: serve image bytes from edge caches, not your own servers |
-| ~\$90k/month of egress | the CDN pays for itself, and image compression becomes a finance decision |
+| ~\$90k/month of egress | bandwidth is a real line item: image compression becomes a finance decision, and the CDN's per-GB price is worth negotiating (it's often, but not always, below the cloud's egress price) |
 | ~274 TB/year and growing | **object storage** (S3-style) for media, not database disks |
 | 250 GB/day of new files | uploads go straight to object storage; the database only stores metadata |
 
@@ -395,8 +398,8 @@ There's no single right answer to a design question. There are well-reasoned ans
    and tradeoffs. The order is the point.
 3. **Functional vs non-functional requirements**, and why the hard parts almost always live in the
    non-functional ones (scale, latency as p99, availability in nines, consistency, durability).
-4. **Estimation tools:** one day ≈ 100,000 seconds, and the ~1,000× latency ladder (memory → SSD →
-   network → cross-continent).
+4. **Estimation tools:** one day ≈ 100,000 seconds, and the latency ladder (memory → SSD →
+   datacenter network → cross-continent: about 1,000×, then 5×, then 200–300×).
 5. **Design for the read:** the dominant access pattern shapes the data model.
 6. **What gets graded:** clarifying, number-driven decisions, named tradeoffs, and reasoning under
    pressure.
@@ -553,8 +556,10 @@ requests per second?`,
       answer: 100000,
       tolerance: 5000,
       explain: md`$1{,}000 \times 100 = 100{,}000$ reads per second — this single number is why the design
-needs a cache. A well-tuned database might handle a few thousand to tens of thousands of simple lookups
-per second on one machine; 100,000 needs either many replicas or a cache absorbing most of the load. And
+needs a cache. A typical production database handles thousands to tens of thousands of simple lookups
+per second. A big, carefully tuned machine can reach 100,000+, but then you're running at its limit
+with no headroom and no redundancy. The comfortable answer is replicas, or a cache absorbing most of
+the load. And
 because link popularity is heavily skewed, a cache holding only the hottest few percent of links can
 absorb the large majority of reads.`,
     },

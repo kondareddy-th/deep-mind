@@ -228,11 +228,11 @@ points, and say *"assuming ~X per server"* out loud.
 | resource | rough capacity |
 |---|---|
 | app server, simple requests | ~1,000–10,000 QPS |
-| relational database, simple queries | ~1,000–10,000 QPS (writes toward the low end) |
+| relational database, simple queries | ~1,000–10,000 QPS as a safe planning figure (big tuned machines do much more; writes toward the low end) |
 | in-memory cache node (Redis/Memcached) | ~100,000+ operations/s |
 | RAM in one server | ~64–512 GB (bigger exists) |
 | disk in one server | ~a few to tens of TB |
-| network card | ~10 Gbps ≈ 1.25 GB/s |
+| network card | 10–25 Gbps common, 100 Gbps exists (10 Gbps ≈ 1.25 GB/s) |
 | open persistent connections per server | ~100,000 (more with tuning) |
 
 ## Three techniques that keep you honest
@@ -344,7 +344,7 @@ $$5 \times 10^6 \text{ min} \times 50 \text{ MB} = 2.5 \times 10^8 \text{ MB} = 
 
 With ×3 replication: **~750 TB per day**. Per year: $250 \times 365 \approx 91$ PB raw, ~270 PB
 replicated. (Huge stores often use *erasure coding* — a cleverer redundancy scheme costing ~1.5×
-instead of 3× — which is worth ~100 PB a year here. At this scale, a factor of 2 in storage efficiency
+instead of 3× — which saves $1.5 \times 91 \approx 137$ PB a year here. At this scale, a factor of 2 in storage efficiency
 *is* a design decision.)
 
 **Bandwidth to serve views** — two independent ways, as a cross-check.
@@ -360,8 +360,9 @@ instead of 3× — which is worth ~100 PB a year here. At this scale, a factor o
 any moment**. Each pulls 2 Mbps → $300{,}000 \times 2$ Mbps = **600 Gbps**. Same answer, different
 route — that agreement is what a sanity check looks like.
 
-At peak (×3): **~1.8 Tbps**. A server's network card is ~10 Gbps; at ~70% use, ~7 Gbps. So
-$1{,}800 \div 7 \approx 260$ servers doing nothing but pushing video bytes — and viewers are spread
+At peak (×3): **~1.8 Tbps**. With 10 Gbps cards at ~70% use (~7 Gbps each), that's
+$1{,}800 \div 7 \approx 260$ servers doing nothing but pushing video bytes. Even with specialised
+100 Gbps video servers it's dozens of machines. And viewers are spread
 across the world, where cross-continent round trips of 100+ ms would make video stutter.
 
 **What the numbers decided:** a **CDN** (a worldwide network of caching servers close to viewers) is
@@ -507,8 +508,8 @@ agree on.
 6. **Orders of magnitude decide the architecture; factors of 2 decide the bill** — and the most
    valuable estimate often says "this is small, don't build the complicated thing."
 
-Next: SD.3 — now that the numbers tell you *how much* load is coming, we'll look at how to spread
-it across many machines without them tripping over each other.
+Next: SD.3. Now that the numbers tell you *how much* load is coming, we'll look at how the pieces
+talk to each other over the network, and what goes wrong when they do.
 `,
     },
   ],
