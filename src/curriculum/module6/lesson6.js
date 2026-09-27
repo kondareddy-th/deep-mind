@@ -8,7 +8,7 @@ export default {
   id: 'm6-l6',
   title: '6.6 Doing research — from reader to contributor',
   subtitle:
-    'Thirty-five lessons ago you could not have said what a dot product had to do with meaning. You can now derive attention, audit a training bill, and argue about superposition — and none of it makes you a researcher yet. This is the last lesson, and it is about the gap.',
+    'Thirty-five lessons ago you could not have said what a dot product had to do with meaning. You can now derive attention, audit a training bill, and argue about superposition — and none of it makes you a researcher yet. This is the last lesson of the six core modules (7 and 8 go deeper into practice), and it is about the gap.',
   sections: [
     {
       type: 'text',
@@ -162,7 +162,8 @@ Concretely, using lesson 5.2's own budget identity $C \approx 6ND$: a GPT-2-scal
 
 $$C \approx 6 \times 1.24{\times}10^{8} \times 2.5{\times}10^{9} \approx 1.9 \times 10^{18} \text{ FLOPs}$$
 
-At a realistic sustained ~125 TFLOP/s on one modern GPU (about 40% MFU — lesson 5.3's number),
+At a realistic sustained ~125 TFLOP/s on one A100-class GPU (about 40% of its 312 TFLOP/s bf16
+peak — lesson 5.3's MFU band; an H100 at the same utilisation is roughly three times faster),
 that is $1.9{\times}10^{18} / 1.25{\times}10^{14} \approx 15{,}000$ seconds: **roughly four hours,
 under ten dollars of rented GPU.** The entry ticket to running your own language-model experiments
 costs about as much as lunch.
@@ -291,7 +292,7 @@ A few honest observations about how people actually enter this field:
 
 ## What you now own — the whole journey
 
-Six modules, and one continuous argument:
+Six core modules, and one continuous argument:
 
 - **Module 1 — geometry.** Meaning became direction; the dot product became agreement; loss became
   surprise; learning became rolling downhill in seven billion dimensions.
@@ -326,7 +327,7 @@ That is a complete answer, from arithmetic to open problem. It took thirty-six l
 
 ## Where this ends and your work begins
 
-This is the last lesson, so let me be plain about what the curriculum can and cannot give you. It
+This is the end of the core curriculum, so let me be plain about what the curriculum can and cannot give you. It
 gave you the map. It cannot give you the thing that makes a researcher, which is the experience of
 being wrong about something you were confident about, in public, and finding out precisely why.
 

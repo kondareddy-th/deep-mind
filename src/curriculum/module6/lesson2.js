@@ -522,11 +522,12 @@ roughly half the answer, yet removing it costs you a quarter. Where did the miss
 phenomenon — a network silently repairing the damage you inflict — is called **self-repair**, or
 more evocatively the **hydra effect**: cut off a head and others grow to replace it.
 
-Nobody built this in. Nobody trained the model to be robust to interpretability researchers. The
-most likely story is mundane and therefore more interesting: dropout and noise during training make
-many components partially redundant, and a head that was already weakly voting the same way gets
-*more* attention mass or a *cleaner* input once the loud head goes quiet. It costs the network
-nothing to have understudies, so it has them.
+Nobody built this in. Nobody trained the model to be robust to interpretability researchers. Why
+it happens is still debated. Dropout during training is one suspected contributor, but self-repair
+also shows up in models trained *without* dropout (the hydra-effect paper found it in Chinchilla), so
+it can't be the whole story. Part of the mechanism is mundane: a head that was already weakly voting
+the same way gets *more* attention mass or a *cleaner* input once the loud head goes quiet, and the
+final layer norm rescales what is left. Whatever the full cause, the network has understudies.
 
 **The methodological moral, stated as harshly as it deserves:** *ablation can dramatically understate
 a component's role, because the network compensates.* A component that looks unimportant under

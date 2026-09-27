@@ -510,8 +510,8 @@ Walk through why, because every step is something you already know.
 **Why B ranked third.** The query says *refund*, and chunk A is about nothing but refunds, densely,
 with the word repeated. Chunk B is a dense legal paragraph in which the refund clause is two
 sentences inside a wall of indemnity and governing-law language — its embedding is an average over
-all of that, so it points somewhat away from the query direction. **The chunk that contains the
-answer is diluted by the chunk that contains it.** That is the chunking problem, doing real damage.
+all of that, so it points somewhat away from the query direction. **The answer is
+diluted by the rest of the chunk that contains it.** That is the chunking problem, doing real damage.
 
 **Why the model went with A.** Three consequences of things you know stack up. First, A arrives
 first in the assembled context and is stated crisply; B is buried in the middle of a long legal

@@ -82,8 +82,9 @@ $|\cos| \le \varepsilon$) — at $d = 12{,}288$ that is astronomically more than
 **The price is interference.** "Nearly" perpendicular is not perpendicular: any two feature
 directions overlap a little, so reading one out picks up a whisper of the others — the dot product
 (1.1's agreement meter) can't fully separate them. The model is doing lossy compression, storing
-more features than it has dimensions and eating a small error budget in exchange. Anthropic named
-this **superposition**, and the next section shows why the error is nearly free.`,
+more features than it has dimensions and eating a small error budget in exchange. This is called
+**superposition** (the term comes from Chris Olah and colleagues' circuits work; Anthropic's 2022
+*Toy Models of Superposition* studied it systematically), and the next section shows why the error is nearly free.`,
     },
     {
       type: 'text',
@@ -150,14 +151,17 @@ possible.
 | 2 | any perpendicular pair | $0$ | free |
 | 3 | the coordinate axes | $0$ | free — exactly saturated |
 | 4 | vertices of a tetrahedron | $1/3 \approx 0.333$ | the pigeonhole bites |
-| 6 | icosahedral (3 antipodal pairs) | $1/\sqrt5 \approx 0.447$ | worse |
-| 30 | no clean solid | $\approx 0.6$–$0.7$ | badly crowded |
+| 6 | one vertex from each of the icosahedron's 6 antipodal pairs | $1/\sqrt5 \approx 0.447$ | worse |
+| 30 | no clean solid | $\approx 0.9$ (closest pair only ~25° apart) | badly crowded |
 
 Two things to take from the table. First, the cliff at $N = d$: up to three features you get
 perfection for free, and the very next feature costs you $0.333$ of permanent interference. Second,
-the *slowness of the degradation after that*: going from 4 features to 30 — a $7.5\times$ increase
-— only doubles the worst-case interference. Superposition scales gracefully. Adding features to an
-already-crowded space is cheap, which is precisely why a model would keep doing it until it holds
+what happens after that. In 3 dimensions the worst pair gets bad fast: at 30 features it sits near
+$0.9$ (a cap-area count proves no arrangement can beat about $0.87$ — 3-space is simply too small).
+But the *typical* pair degrades far more slowly — around $0.5$ in 3-D, and $1/\sqrt d$ in general —
+and with sparse features the typical pair is the one that sends the bill. In high dimensions even
+the worst pair stays small for a very long time. Adding features to an already-crowded
+high-dimensional space is cheap, which is precisely why a model would keep doing it until it holds
 orders of magnitude more features than dimensions.
 
 Now scale the intuition: at $d = 12{,}288$, the "free" regime ends at 12,288 features, but the

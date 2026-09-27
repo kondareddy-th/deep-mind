@@ -39,7 +39,7 @@ So sit with the obvious corollary, because it changes how you should feel in a s
 
 That method is not a personality trait. It is two learnable skills — **triage** (deciding fast what
 deserves your hours) and **structured skepticism** (deciding what a paper has actually established).
-The second one is the reason this lesson comes at the end of the curriculum rather than the
+The second one is the reason this lesson comes at the end of the core curriculum rather than the
 beginning: you cannot evaluate a claim about KV-cache throughput, compute-optimal training, or
 monosemantic features until you own the machinery those claims are made of. You now do. This lesson
 turns thirty-four lessons of knowledge into a working instrument.
@@ -265,9 +265,10 @@ verified a frontier model's parameter count from seven numbers with arithmetic y
 
 The 8 KV heads are not decoration. From 3.3: full multi-head KV cache costs
 $2 \times 4096 \times 32 \text{ layers} \times 2 \text{ bytes} = 512$ KB per token; with GQA it is
-128 KB — a **4× cut**, which at 8,192 context is 4 GB versus 1 GB per sequence. That is the
-difference between a batch of 8 and a batch of 32 on one GPU, and therefore (4.5) roughly a 4×
-difference in cost per token. One row in the architecture table, four numbers downstream.
+128 KB — a **4× cut**, which at 8,192 context is 4 GB versus 1 GB per sequence. On an 80 GB GPU
+holding 16 GB of bf16 weights, that is the difference between about 16 and about 64 full-length
+sequences in flight — and (4.5) bigger batches share each weight read across more users, which cuts
+the cost per token substantially (not a full 4×, because the cache reads still grow with batch). One row in the architecture table, four numbers downstream.
 
 **Table 2 — training setup (decode with 5.2, 5.3):**
 
@@ -550,7 +551,7 @@ sections and the list got one.
 6. **Reproducibility, honestly:** much does not replicate; discount rather than dismiss; know what
    good practice looks like so you can produce it yourself.
 
-You can now read the field. The last lesson asks the harder question: how do you **add** to it?
+You can now read the field. The next lesson asks the harder question: how do you **add** to it?
 `,
     },
   ],
