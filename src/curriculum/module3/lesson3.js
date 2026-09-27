@@ -193,8 +193,8 @@ $\mathbf{k}_1 = (1, 0)$, $\mathbf{v}_1 = (2, 0)$, $\mathbf{k}_2 = (0, 1)$, $\mat
 **Step 1 — generate token 3 ("sat"):** compute *only* token 3's column:
 $\mathbf{q}_3 = (2, 2)$, $\mathbf{k}_3 = (1, 1)$, $\mathbf{v}_3 = (1, 1)$.
 Attend: scores $\mathbf{q}_3 \cdot \mathbf{k}_{1,2,3}/\sqrt2 = (1.41,\; 1.41,\; 2.83)$ →
-softmax $\approx (0.19,\; 0.19,\; 0.62)$ → output
-$0.19(2,0) + 0.19(0,1) + 0.62(1,1) = (1.00,\; 0.81)$.
+softmax $\approx (0.16,\; 0.16,\; 0.67)$ (since $e^{1.41} \approx 4.11$ and $e^{2.83} \approx 16.9$)
+→ output $0.16(2,0) + 0.16(0,1) + 0.67(1,1) \approx (1.00,\; 0.84)$.
 Append: cache is now $[\mathbf{k}_1, \mathbf{k}_2, \mathbf{k}_3]$, $[\mathbf{v}_1, \mathbf{v}_2, \mathbf{v}_3]$.
 Columns 1–2: **untouched** — we read them, never recomputed them.
 

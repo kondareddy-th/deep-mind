@@ -81,7 +81,8 @@ entropy of the smear.
 Careful, though: there are two different channels here, and they are not equally trustworthy.
 **Channel one:** the distribution itself (logprobs) — often reasonably calibrated, in the concrete
 sense that answers emitted with probability ~0.9 are right far more often than answers emitted
-with probability ~0.2. **Channel two:** *asking the model* "are you sure?" — but that reply is
+with probability ~0.2. (This holds best for *base* models; preference tuning such as RLHF often
+makes a model's probabilities noticeably less calibrated, as the GPT-4 technical report showed.) **Channel two:** *asking the model* "are you sure?" — but that reply is
 just more generated text, produced by the same must-answer machinery, and it is empirically a
 worse-calibrated channel (trained habits like sounding helpful contaminate it). Flag planted
 honestly: measuring what a model knows — uncertainty quantification, calibration — is an active

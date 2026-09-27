@@ -68,7 +68,7 @@ Why does the reply *end*? Nothing in the loop of 3.3 ever stops on its own — s
 forward pass, sample, forever.
 
 The answer is almost disappointingly mechanical, which is exactly why it's worth knowing. Among
-the ~50,000 rows of the vocabulary there is a designated **end-of-turn token** — an ordinary token
+the tens of thousands of rows of the vocabulary there is a designated **end-of-turn token** — an ordinary token
 like any other, with its own embedding, its own logit, its own softmax probability. In the
 training dialogues, that marker appears wherever an assistant's answer naturally ends. So the
 model *learned to predict it* there, the way it learned to predict a period at the end of a

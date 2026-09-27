@@ -355,7 +355,8 @@ request time**:
 
 - $T \approx 0$ (greedy-ish), light truncation, for **math, code, extraction** — closed tasks
   with peaked distributions, where mode and typical set nearly coincide (low entropy means
-  little surprise to lose) and reproducibility is a feature, not a bug.
+  little surprise to lose) and reproducibility is a feature, not a bug. (Near-reproducibility:
+  batched GPU arithmetic can still make hosted outputs differ slightly between runs.)
 - $T \approx 0.7$–$1.0$ with top-p $0.9$–$0.95$ for **prose, dialogue, brainstorming** — you
   want typical-set text with the tail amputated.
 
@@ -575,8 +576,9 @@ stretched lead into a landslide (1.4) — in the limit, all mass on the argmax. 
 all logits toward equality — uniform over *everything*, banana included, which is why high
 temperature without truncation is anarchy. Option C tempts because "unmodified" feels like an
 extreme — but that's $T = 1$, the *middle* of the dial, not the end. Option D tempts the
-literal-minded: the limits are perfectly well-defined, and every API implements $T = 0$ as exact
-argmax.`,
+literal-minded: the limits are perfectly well-defined, and APIs treat $T = 0$ as argmax. (One practical
+wrinkle: batched GPU arithmetic isn't bit-for-bit repeatable, so even at $T = 0$ a hosted model
+can occasionally give slightly different outputs run to run.)`,
     },
     {
       id: 'm3-l2-q10',

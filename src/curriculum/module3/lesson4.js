@@ -8,8 +8,8 @@ export default {
   id: 'm3-l4',
   title: '3.4 The speed of thought — the memory-bandwidth wall',
   subtitle: md`An H100 multiplies numbers a quadrillion times a second, yet streams your reply at
-a few dozen words. Divide the two spec-sheet numbers and the machine should be a thousand times
-faster than it is. This lesson finds the missing factor — and then derives half the inference
+a hundred or two tokens a second. Divide the two spec-sheet numbers and the machine should be
+hundreds of times faster than it is. This lesson finds the missing factor — and then derives half the inference
 industry from it.`,
   sections: [
     {
@@ -29,9 +29,10 @@ $2 \times 7 \times 10^9 = 1.4 \times 10^{10}$ FLOPs.
 
 **The division:** $10^{15} / (1.4 \times 10^{10}) \approx 70{,}000$ tokens per second.
 
-Now go measure. Single stream, batch of one, 7B model on an H100: **under 100 tokens per
-second**. The prediction is off by roughly a factor of a *thousand*. The most expensive
-arithmetic machine money can buy is spending 99.9% of its time doing nothing — and no, it isn't
+Now go measure. Single stream, batch of one, 7B model on an H100: **roughly 100–200 tokens per
+second** with a well-optimized serving engine (naive code manages less). The prediction is off by
+a factor of *several hundred*. The most expensive arithmetic machine money can buy is spending
+over 99% of its time doing nothing — and no, it isn't
 Python overhead, thermal throttling, or a slow softmax. Something enormous is missing from the
 naive estimate, and it's missing because it is a cost so mundane that we forgot to count it at
 all.
@@ -67,7 +68,7 @@ $$t_{\text{haul}} \;\ge\; \frac{14 \text{ GB}}{3350 \text{ GB/s}} \approx 4.2 \t
 
 And the arithmetic? $1.4 \times 10^{10}$ FLOPs at $10^{15}$ FLOPs/s = **14 microseconds**. The
 step computes for 14 µs and hauls bytes for 4,200 µs. There is your missing factor of ~300 — the
-rest of the gap down to "under 100" is overheads and some extra traffic we'll meet in a moment.
+rest of the gap down to measured speeds is overheads and some extra traffic we'll meet in a moment.
 The multipliers were never the constraint; the *conveyor belt feeding them* is. Invert the haul
 time and you get a hard ceiling that no clever kernel can beat:
 
@@ -311,7 +312,7 @@ new chip or model, usually on an actual envelope. Now it's yours too.
 
 ## What you now own
 
-1. **The scandal, resolved:** 70,000 tokens/sec predicted, under 100 measured — because decode
+1. **The scandal, resolved:** 70,000 tokens/sec predicted, ~100–200 measured — because decode
    computes for 14 µs and hauls 14 GB for 4.2 ms. Step time *is* memory time.
 2. **The law:** tokens/sec ≤ bandwidth ÷ bytes-per-step (weights *plus* KV cache — long chats
    type slower). Checkable against any spec sheet.
@@ -341,7 +342,7 @@ the API.
       id: 'm3-l4-q1',
       kind: 'mcq',
       prompt: md`An H100 does ~$10^{15}$ FLOPs/s; a 7B decode step needs ~$1.4 \times 10^{10}$
-FLOPs — yet single-stream generation runs under 100 tokens/sec, not ~70,000. What is the
+FLOPs — yet single-stream generation runs at a couple of hundred tokens/sec at best, not ~70,000. What is the
 dominant reason?`,
       options: [
         md`Attention's quadratic cost in context length consumes the compute budget`,
