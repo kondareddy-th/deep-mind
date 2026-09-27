@@ -7,7 +7,7 @@ const md = String.raw
 export default {
   id: 'm6-l4',
   title: '6.4 Agents and thinking longer — the capability frontier',
-  subtitle: md`Everything you have learned builds a better *next-token predictor*. Nothing in it browses the web, runs a test suite, reads the traceback and fixes the bug for an hour. Yet deployed systems do exactly that. This lesson derives where the agency actually comes from — and then does the one piece of arithmetic that explains why the demo is always so much better than the product.`,
+  subtitle: md`Everything you have learned builds a better next-token predictor. Nothing in it browses the web, runs a test suite, reads the traceback and fixes the bug for an hour. Yet deployed systems do exactly that. This lesson derives where the agency actually comes from — and then does the one piece of arithmetic that explains why the demo is always so much better than the product.`,
   sections: [
     {
       type: 'text',

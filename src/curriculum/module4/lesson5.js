@@ -15,7 +15,7 @@ export default {
 ## The puzzle
 
 Open any LLM pricing page. A 70B-class model: roughly one to three dollars per **million**
-output tokens. Now open a cloud console: one H100 rents for about $2.50 an hour, and a 70B
+output tokens. Now open a cloud console: one H100 rents for about \$2.50 an hour, and a 70B
 model needs eight of them. Twenty dollars an hour of hardware, selling its product for a few
 dollars per million words.
 
@@ -58,7 +58,7 @@ TTFT and hides the TPOT behind your own reading speed.
       type: 'example',
       title: 'naive serving, costed to the penny',
       md: md`
-One user, one H100 at $2.50/hour, a 7B model in fp16, no tricks. Decode runs at ~100 tokens/s
+One user, one H100 at \$2.50/hour, a 7B model in fp16, no tricks. Decode runs at ~100 tokens/s
 (the bandwidth ceiling with realistic overhead). An hour of nonstop generation:
 
 $$100 \text{ tok/s} \times 3600 \text{ s} = 360{,}000 \text{ tokens/hour}
@@ -69,17 +69,17 @@ Posted prices for 7B-class models sit around ten to thirty *cents* per million (
 check any pricing page). Naive serving is **25–70× too expensive**. And look *why*, in
 3.4's terms: each decode step hauls 14 GB to perform ~14 GFLOPs — at 100 tok/s that's
 1.4 TFLOP/s of work on a ~1,000 TFLOP/s machine. **99.9% of the silicon you're renting is
-idle.** Lesson 3.4 called this a scandal; here it is denominated in dollars: of every $2.50
-hour, roughly $2.49 pays for multipliers doing nothing.
+idle.** Lesson 3.4 called this a scandal; here it is denominated in dollars: of every \$2.50
+hour, roughly \$2.49 pays for multipliers doing nothing.
 
-Scale up and it gets worse. A 70B model on an 8×H100 node ($20/hour): the 140 GB weight-haul
+Scale up and it gets worse. A 70B model on an 8×H100 node (\$20/hour): the 140 GB weight-haul
 spread over ~26.8 TB/s of aggregate bandwidth gives a ~5 ms/step floor, but per-layer
 all-reduces (4.2's tensor-parallel tax, riding NVLink) and kernel overheads drag a lone
 stream to ~40 tokens/s realistic. That's 144,000 tokens/hour:
 
 $$\frac{\$20}{0.144 \text{ M tokens}} \approx \$140 \text{ per million output tokens}$$
 
-versus a posted $1–3. **Naive serving cannot match posted prices — not close, not with any
+versus a posted \$1–3. **Naive serving cannot match posted prices — not close, not with any
 haggling.** Everything that follows is the machinery that closes a 50–100× gap.
 `,
     },
@@ -242,7 +242,7 @@ long prompts are what makes prefill big enough to deserve its own hardware.
       type: 'example',
       title: 'the full invoice — deriving a posted price',
       md: md`
-Assemble everything. One 8×H100 node ($20/hour, 640 GB HBM, ~26.8 TB/s aggregate), 70B in
+Assemble everything. One 8×H100 node (\$20/hour, 640 GB HBM, ~26.8 TB/s aggregate), 70B in
 fp16 with 8-way GQA, continuous batching with PagedAttention holding batch $B = 64$ at ~8k
 context each.
 
@@ -270,7 +270,7 @@ batching, paging, and quantization did the closing — the 50–100× we owed.
 
 **Why input is cheaper than output.** Price the prefill pool: the node peaks near 8 PFLOP/s
 in bf16; at ~40% MFU that's 3.2 PFLOP/s against 140 GFLOPs per token — about 23,000 input
-tokens/s, ~82 M/hour, roughly **$0.25 per million input tokens**. Input runs ~5–10× cheaper
+tokens/s, ~82 M/hour, roughly **\$0.25 per million input tokens**. Input runs ~5–10× cheaper
 than output because prefill tokens share weight-hauls massively (compute-bound, parallel)
 while output tokens are minted one serial bandwidth-bound step at a time. Check a pricing
 page: input at 3–5× less than output. The physics predicts the *shape* of the menu.
@@ -311,7 +311,7 @@ any residual as a question with an answer, not noise.`,
 1. **The two clocks:** TTFT = queue + prefill, compute-bound, grows with prompt length;
    TPOT = decode, bandwidth-bound, pinned at 3.4's ceiling. Streaming sells the first and
    hides the second.
-2. **The naive scandal, in dollars:** one user, one H100, ~$7/M tokens for 7B and ~$140/M for
+2. **The naive scandal, in dollars:** one user, one H100, ~\$7/M tokens for 7B and ~\$140/M for
    70B — with 99.9% of the silicon idle. Posted prices are 30–100× lower; the gap is the
    engineering, never a subsidy.
 3. **Continuous batching:** nothing forces batch membership to be constant — rebuild the
@@ -361,7 +361,7 @@ hardware speed.`,
     {
       id: 'm4-l5-q2',
       kind: 'numeric',
-      prompt: md`Naive serving, on paper: one H100 rents for $2.52/hour and serves a single
+      prompt: md`Naive serving, on paper: one H100 rents for \$2.52/hour and serves a single
 user at 100 tokens/s, nonstop. What is the cost in **dollars per million output tokens**?`,
       answer: 7,
       tolerance: 0.5,
@@ -476,7 +476,7 @@ the GPU, sets the price. This arithmetic is the entire motivation for paging.`,
       id: 'm4-l5-q8',
       kind: 'written',
       prompt: md`**Derive, don't recall — the invoice.** From first principles, on paper,
-derive cost per million output tokens for a 70B fp16 model on an 8×H100 node ($20/hour,
+derive cost per million output tokens for a 70B fp16 model on an 8×H100 node (\$20/hour,
 ~26.8 TB/s aggregate HBM bandwidth), twice: (1) naive single-stream (assume ~40 tok/s after
 overheads — say why it's bandwidth-bound); (2) continuous batching at $B = 64$, ~8k context,
 0.33 MB/token cache — compute the per-step haul (weights + caches), step time, ideal

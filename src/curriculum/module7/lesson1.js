@@ -21,7 +21,7 @@ Now look at the menu, in order of what it costs you:
 
 | intervention | money | your time |
 |---|---|---|
-| rewrite the prompt | $0 | an afternoon |
+| rewrite the prompt | \$0 | an afternoon |
 | few-shot examples in context | pennies per request, forever | an afternoon |
 | retrieval (RAG) | infrastructure | days to weeks |
 | LoRA fine-tune | tens of dollars | days (mostly data) |
@@ -123,7 +123,7 @@ Once you've earned your way up the ladder, be clear about what you're purchasing
 honest list is narrower and more valuable than the hype suggests:
 
 - **Format reliability at scale.** Prompting gets you to 95% schema compliance; fine-tuning gets
-  you to 99.5%. If you make a million calls, that difference is 45,000 failures a day.
+  you to 99.5%. If you make a million calls a day, that difference is 45,000 failures a day.
 - **Shorter prompts — a real, recurring cost saving.** A behaviour baked into weights doesn't need
   2,000 tokens of instructions on every request (the arithmetic below is startling).
 - **Tone and persona consistency**, which long instructions approximate badly.
@@ -158,7 +158,7 @@ Diagnosis: try three prompt variants with an explicit style guide and two worked
 this alone lands it. **Type 3 first.** If style *still* drifts across thousands of calls, it
 becomes Type 2 and a small fine-tune buys consistency prompting can't hold.
 
-**4. "It's good, but at 40 tokens/sec and $8k a month, we can't ship it."**
+**4. "It's good, but at 40 tokens/sec and \$8k a month, we can't ship it."**
 Diagnosis: quality is fine. **Type 4** — an efficiency problem wearing a quality costume. Cures
 live in Module 8: quantize (4.4), distil into a smaller model, batch better (4.5), cache prompts.
 Fine-tuning the big model for quality would be solving a problem you don't have.
@@ -168,7 +168,7 @@ Fine-tuning the big model for quality would be solving a problem you don't have.
       type: 'ponder',
       question: md`Run the economics yourself before reading on. You serve **1,000,000 requests per
 month**. Your prompt carries a 2,000-token instruction block that a fine-tune could bake into the
-weights. Input tokens cost about **$3 per million**. A LoRA fine-tune costs roughly **$50** of
+weights. Input tokens cost about **\$3 per million**. A LoRA fine-tune costs roughly **\$50** of
 compute, one time. What's the monthly prompt bill, what's the payback period — and then the harder
 question: what cost did this arithmetic completely ignore?`,
       answer: md`**The bill:** $2{,}000 \text{ tokens} \times 10^6 \text{ requests} = 2 \times 10^9$
@@ -285,7 +285,7 @@ distribution, not what the model knows.`,
       id: 'm7-l1-q2',
       kind: 'numeric',
       prompt: md`You serve 1,000,000 requests per month with a 2,000-token instruction block in
-every prompt. Input tokens cost $3 per million. What is your **monthly** cost, in dollars, for
+every prompt. Input tokens cost \$3 per million. What is your **monthly** cost, in dollars, for
 those instruction tokens alone?`,
       answer: 6000,
       tolerance: 500,
@@ -360,7 +360,8 @@ take?`,
       explain: md`Tokens: $10{,}000 \times 500 \times 3 = 1.5\times10^{7}$. Compute:
 $C \approx 6 \times 8\times10^{9} \times 1.5\times10^{7} \approx 7.2\times10^{17}$ FLOPs. Divided
 by $1.25\times10^{14}$ FLOP/s gives $\approx 5{,}800$ s $\approx$ **1.6 hours** — a few dollars of
-rented GPU. Note what this means: the *compute* for a serious task-specific fine-tune is
+rented GPU. (6ND slightly overcounts for LoRA: frozen weights need no weight gradients, which
+skips about a third of the backward work, so ~4ND and about an hour is closer. Same conclusion.) Note what this means: the *compute* for a serious task-specific fine-tune is
 inconsequential. What costs real money is the dataset and the maintenance, which is exactly why the
 decision rule in this lesson is about ownership rather than FLOPs.`,
     },
@@ -376,7 +377,7 @@ decision rule in this lesson is about ownership rather than FLOPs.`,
       ],
       answer: 1,
       explain: md`Format reliability at scale is the archetypal Type 2 win — and that last few
-percent matters enormously in production, where 4% of a million calls is 40,000 daily failures.
+percent matters enormously in production, where 4% of a million daily calls is 40,000 failures a day.
 Option A is Type 1 (retrieve instead). Option C oversells: fine-tuning *elicits and stabilises* what
 the base can already do; it does not manufacture absent capability, and a weekend of LoRA will not
 turn a small model into a reasoner. Option D inverts the truth — a fine-tuned model needs *more*
@@ -403,7 +404,7 @@ the operational pain lives.`,
 you would run *first* to confirm it, the intervention you would choose, and one way your choice
 could be wrong: (a) a legal-summary tool that is accurate but writes in a chatty, informal register
 your clients dislike; (b) an internal assistant that misstates this quarter's org chart; (c) a
-classifier built on a 70B model that is accurate but costs $12,000 a month to serve.`,
+classifier built on a 70B model that is accurate but costs \$12,000 a month to serve.`,
       rubric: md`**(a) Register/tone.** Likely **Type 3 first, Type 2 if it persists**. Diagnostic:
 try two or three prompt revisions with an explicit style guide plus two worked examples, measured
 on a held-out set — style problems very often dissolve here. Intervention: prompt work; escalate to
@@ -448,7 +449,7 @@ retrieval alongside.`,
       id: 'm7-l1-q10',
       kind: 'numeric',
       prompt: md`A team estimates 3 weeks of engineering time to build and iterate on a fine-tuning
-dataset, at a loaded cost of $4,000 per week, plus $50 of GPU compute. What is the **total** cost,
+dataset, at a loaded cost of \$4,000 per week, plus \$50 of GPU compute. What is the **total** cost,
 and what fraction of it is the GPU? (Give the total in dollars.)`,
       answer: 12050,
       tolerance: 500,

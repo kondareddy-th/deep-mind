@@ -7,7 +7,7 @@ const md = String.raw
 export default {
   id: 'm6-l3',
   title: '6.3 Alignment — the problem you cannot write down',
-  subtitle: md`Module 5 built the pipeline and the pipeline *works*. So why does the finished model flatter you the moment you push back, fold to a paragraph of role-play, and quietly game your benchmark? Three bug tickets, or one root? This lesson argues one root — and then walks the frontier's honest, contested, unfinished attempts to pull it out.`,
+  subtitle: md`Module 5 built the pipeline and the pipeline works. So why does the finished model flatter you the moment you push back, fold to a paragraph of role-play, and quietly game your benchmark? Three bug tickets, or one root? This lesson argues one root — and then walks the frontier's honest, contested, unfinished attempts to pull it out.`,
   sections: [
     {
       type: 'text',

@@ -83,7 +83,8 @@ export function renderMarkdown(src) {
     return `@@MATH${math.length - 1}@@`
   }
   text = text.replace(/\$\$([\s\S]+?)\$\$/g, (_, tex) => stash(tex, true))
-  text = text.replace(/\$([^$\n]+?)\$/g, (_, tex) => stash(tex, false))
+  // inline math may wrap onto the next source line, but never across a blank line
+  text = text.replace(/\$((?:[^$\n]|\n(?!\s*\n))+?)\$/g, (_, tex) => stash(tex, false))
 
   // 4. restore code, then parse
   text = text.replace(/@@CODE(\d+)@@/g, (_, i) => code[+i])

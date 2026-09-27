@@ -263,7 +263,7 @@ come to about $7 \times 10^{13}$ FLOPs, which even at *peak* takes about 71 ms.
 
 So look at what we have found. The elementwise work is on the order of $3 \times 10^{10}$ FLOPs:
 about **0.04% of the block's arithmetic**. And it consumes about **7% of the block's time**. A
-disproportion of roughly 170×. That ratio — trivial share of the math, meaningful share of the clock —
+disproportion of roughly 150×. That ratio — trivial share of the math, meaningful share of the clock —
 is the signature of memory-bound work, and once you have seen it you will recognise it in every
 profile you ever read.
 
@@ -271,7 +271,8 @@ profile you ever read.
 row sits in SRAM, and writes back once: 1.07 GB each. Each residual add folds into the epilogue of the
 matmul that produced its input, costing only the read of the residual: 0.54 GB each. The activation
 folds into the epilogue of the gate projection, and the gate multiply folds into the epilogue of the
-up projection, so the intermediate $F$ tensors are written **once, already gated**, instead of three
+up projection (computing the gate and up projections as one interleaved matmul, so both halves of a
+tile are in registers together), so the intermediate $F$ tensors are written **once, already gated**, instead of three
 times. Total: about **5.4 GB, or 1.6 ms** — roughly **3.2× less traffic**.
 
 And here is the honest bookkeeping, which is more useful to you than a triumphant one. The block went

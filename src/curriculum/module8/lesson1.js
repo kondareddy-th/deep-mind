@@ -329,7 +329,8 @@ token in the batch**. With $w$ bytes per parameter and batch size $B_{\text{sz}}
 
 $$I_{\text{decode}} \;\approx\; \frac{2 B_{\text{sz}}}{w}$$
 
-So the entire picture falls out of one fraction:
+So the entire picture falls out of one fraction (the figures below count int8 weights, $w = 1$;
+at large batch the per-request KV-cache reads pull the real intensity somewhat below the formula):
 
 - **Batch-1 decode: $I \approx 1$–$2$.** (Exactly 1 in fp16, 2 in int8 — and the distinction is
   comic when the ridge is 295.) You are three hundred times short. Attainable performance is
@@ -421,7 +422,8 @@ residual adds — stops round-tripping intermediates to HBM, and the per-kernel 
 collapses into one replayed graph. **$1.25\times$**. → **320 tok/s**.
 
 **3. Continuous batching to 32 concurrent requests** (4.5). One weight haul now serves 32 streams.
-Each *user* sees roughly the speed they saw before; the *server* goes from 320 to about
+Each *user* sees their stream slow down somewhat (about 170 tok/s instead of 320, because the
+cache reads and the batched arithmetic are no longer free); the *server* goes from 320 to about
 **5,400 tok/s**, a **$17\times$** on the metric that pays the electricity bill.
 
 $$142 \;\to\; 5{,}400 \;\text{tok/s} \qquad 1.8 \times 1.25 \times 17 \approx 38\times$$
@@ -440,7 +442,7 @@ that is no longer in charge, and the measured win collapses from $1.8\times$ to 
 **$1.15\times$**.
 
 Push to batch 256, intensity $\approx 400$, past the ridge: now the workload is compute-bound and
-weight-byte reduction buys **nothing at all** on throughput. (Int4 still buys you something real —
+weight-byte reduction buys **nothing at all** on throughput. (Quantization still buys you something real —
 *capacity*, hence more concurrent requests, hence better utilisation — but the bandwidth argument
 for it is dead, and if you quote the bandwidth argument in a design review someone will ask you what
 batch size you measured at.)

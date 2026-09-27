@@ -8,7 +8,7 @@ export default {
   id: 'm8-l5',
   title: '8.5 Thinking like the frontier — where new ideas come from',
   subtitle:
-    'Every technique in this curriculum was once a thing nobody had thought of. Having built forty-odd lessons of machinery, you are now in the rare position to reverse-engineer the *generators* — the small number of questions that keep producing frontier ideas.',
+    'Every technique in this curriculum was once a thing nobody had thought of. Having built forty-odd lessons of machinery, you are now in the rare position to reverse-engineer the generators — the small number of questions that keep producing frontier ideas.',
   sections: [
     {
       type: 'text',
