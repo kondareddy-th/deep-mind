@@ -108,7 +108,7 @@ per copy — loss on those 1,000 copies collapses — and the model has learned 
 become a lookup table for one document, spending parameters and gradient signal that generalizable
 patterns needed. The loss curve smiles while the mind hollows: your average loss falls, and the
 fall is a lie. And it's not hypothetical — extraction experiments find that how often a sequence
-was duplicated in training is the strongest predictor of whether the model can be prompted to
+was duplicated in training is one of the strongest predictors of whether the model can be prompted to
 regurgitate it verbatim (measured, and the reason duplicated personal data and copyrighted text
 are a legal problem, not just a scientific one).
 
@@ -202,7 +202,10 @@ ultra-low perplexity — is text carrying almost no information per token: templ
 SEO chum, the ten-thousandth copy of a cookie-banner sentence pattern. Text the reference finds
 **impossibly hard** — ultra-high perplexity — isn't deep, it's broken: OCR garbage, encoding
 errors, word salad, tables mangled into noise. Real prose written to inform a human sits in the
-**middle band**, and that's what you keep. Savor this for a second: perplexity entered this course
+**middle band**, and that's what you keep. (Honest footnote: pipelines differ here. CCNet-style
+pipelines score with a Wikipedia-trained model and simply keep the low-perplexity "head," leaving
+the degenerate ultra-low tail to separate repetition heuristics; some studies find middle-band
+selection works best. The two-tails logic is the reason both kinds of filter exist.) Savor this for a second: perplexity entered this course
 in 1.5 as a way to *measure models against fixed data*. Here it returns, pointed the other way —
 *measuring data with a fixed model*. Same instrument, rotated 180 degrees. That's what it means to
 own a concept.
@@ -287,7 +290,7 @@ table is what's varying.
 than your training budget — so you rerun **epochs** over the same data. The measured answer to
 "how much is a reread worth?" (one careful study of data-constrained scaling; treat the numbers as
 reported findings): up to about **4 epochs, repeated tokens are worth nearly as much as fresh
-ones**; past that the value decays fast, and by a dozen-plus epochs rereads are nearly worthless.
+ones**; past that the value decays, and by a few dozen epochs further rereads add almost nothing.
 So the recipe gains a second column: scarce precious sources (math, curated text) get read 3–4
 times; the abundant web, once. Diminishing returns, measured — your reading diet has a compound
 interest schedule.
@@ -716,7 +719,7 @@ distinct shingles, B has 9 distinct shingles, and they share 6. What **Jaccard s
       tolerance: 0.02,
       explain: md`Union $= 9 + 9 - 6 = 12$ distinct shingles (do not double-count the shared 6 —
 the classic slip); $J = 6/12 = 0.5$. A 128-hash sketch would agree in about 64 of 128 positions,
-give or take ~5 — and that fingerprint comparison, never touching the documents themselves, is
+give or take ~6 — and that fingerprint comparison, never touching the documents themselves, is
 what turns an impossible $5 \times 10^{19}$ pairwise problem into an overnight job on 10 billion
 documents.`,
     },

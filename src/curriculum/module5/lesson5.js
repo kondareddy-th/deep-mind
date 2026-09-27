@@ -9,7 +9,7 @@ export default {
   title: '5.5 RLHF and friends — learning what better means',
   subtitle: md`SFT taught the model to answer like its teachers — which is exactly the problem: an
 imitator can never out-answer the demonstration. This lesson is how the field trains on judgment
-instead of imitation: reward models built from 1952 chess math, the KL leash you were promised in
+instead of imitation: reward models built from 1952 taste-test math, the KL leash you were promised in
 1.5, the reward-hacking disease that makes chatbots verbose flatterers, DPO's elegant shortcut, and
 the verifiable rewards behind reasoning models.`,
   sections: [
@@ -87,8 +87,8 @@ Divide top and bottom by $e^{r_A}$ and softmax-over-two collapses into the sigmo
 *gap*. Notice what survived: only the difference. Absolute scores mean nothing — shift both by
 +100 and every prediction is unchanged, exactly the shift-invariance you proved for softmax logits
 in 1.4. This little model of noisy judges comparing hidden scores is called **Bradley–Terry**, and
-it predates language models by seventy years — it was invented in 1952 for ranking chess players
-and taste-test batches. The math of "which soup is better" turns out to be the math of aligning
+it predates language models by seventy years — it was published in 1952 for paired-comparison experiments such
+as taste tests. (Chess's Elo rating, from the 1960s, runs on the same logistic idea.) The math of "which soup is better" turns out to be the math of aligning
 frontier models. Hold that thought until 5.6, where it gets stranger.
 
 Feel it with numbers: say the reward model currently scores response A at $r_A = 2.1$ and response
@@ -421,7 +421,7 @@ polished artifact in AI are legible, once you know what the sausage machine does
    failures), and judgment scales past both.
 2. **The reward model, derived:** Bradley–Terry is 1.4's softmax over two options —
    $P(A \text{ wins}) = \sigma(r_A - r_B)$, $\sigma(0.8) \approx 0.69$ — trained by cross-entropy
-   (1.5) on human picks. 1952 chess math, load-bearing in 2026.
+   (1.5) on human picks. 1952 taste-test math, load-bearing in 2026.
 3. **RLHF in one sentence:** make your own sampled outputs more likely in proportion to their
    reward — leashed by $\beta\, D_{\text{KL}}(\pi \| \pi_{\text{ref}})$, 1.5's teaser cashed:
    drift must pay for itself by the nat.

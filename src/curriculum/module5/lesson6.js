@@ -7,10 +7,10 @@ const md = String.raw
 export default {
   id: 'm5-l6',
   title: '5.6 Evals — how do you know it’s any good?',
-  subtitle: md`Twenty-eight lessons of machinery built you a frontier model. This one asks the
+  subtitle: md`Twenty-nine lessons of machinery built you a frontier model. This one asks the
 only question your CEO cares about — is it better than theirs? — and shows why measurement is the
 least-solved problem in the field: benchmarks that die when targeted, contamination arms races,
-judges with predictable diseases, arenas running on 1952 chess math, and the craft habits that
+judges with predictable diseases, arenas running on 1952 paired-comparison math, and the craft habits that
 keep a researcher honest. The capstone of the module — and of the technical curriculum.`,
   sections: [
     {
@@ -27,7 +27,7 @@ asks the only question the outside world will ever ask about your three months a
 
 > Is ours better?
 
-And here is the uncomfortable truth this lesson exists to teach: after twenty-eight lessons of
+And here is the uncomfortable truth this lesson exists to teach: after twenty-nine lessons of
 machinery — gradients, attention, distributed training, RLHF — *this* question, measurement, is
 genuinely the least-solved problem in the field. Not for lack of trying. Because measuring "good"
 is structurally cursed, and by the end of 5.5 you can already name the curse: every measure of
@@ -129,7 +129,7 @@ Symptoms a researcher learns to smell:
   data-inspection habits, pointed at a new target.)
 - **The fresh-variant drop**: rewrite the questions — same skill, same difficulty, new surface
   — and the score falls off a cliff. Real and reported: when researchers hand-wrote fresh
-  GSM8K-style problems, several well-known models dropped by up to ~10 points, while others
+  GSM8K-style problems, several well-known models dropped by up to ~13 points, while others
   barely moved. The gap between old-score and fresh-score is a direct contamination gauge, and
   you'll compute one below.
 

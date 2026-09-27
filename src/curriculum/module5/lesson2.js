@@ -55,7 +55,8 @@ researchers live on log-log plots: straightness certifies the law, slope measure
 
 Feel the exponents, because they are brutal: $\alpha \approx 0.34$ means doubling parameters
 shrinks the capacity term by only $2^{0.34} \approx 1.27\times$. A 27% dent, for double the model.
-Every decade of improvement costs roughly $10\times$ the resources — scaling works, and scaling is
+Scale up tenfold and the capacity term shrinks only $10^{0.34} \approx 2.2\times$; cutting it
+tenfold would take $10^{1/0.34} \approx 900\times$ the parameters. Scaling works, and scaling is
 merciless. Both facts at once.
 `,
     },
@@ -165,7 +166,7 @@ curve. But the loss curve those same models sit on IS smooth. Both plots are rea
 both be true — and what should a researcher check before declaring a "phase transition"?`,
       answer: md`The reconciliation lives in the gap between *loss* and *metric*. Exact-match
 arithmetic scores 0 unless *every* digit-token is right: a model whose per-digit probability
-climbs smoothly $0.5 \to 0.8 \to 0.95$ scores $\approx 6\% \to 33\% \to 77\%$ on 5-digit
+climbs smoothly $0.5 \to 0.8 \to 0.95$ scores $\approx 3\% \to 33\% \to 77\%$ on 5-digit
 exact-match — the smooth improvement is *hidden below the threshold*, then "erupts." A hard
 metric applied to smoothly-improving log-probabilities manufactures a jump (this is the
 "emergence is a mirage" argument — measure with a smooth metric like per-token log-likelihood and
@@ -350,8 +351,8 @@ $A/N^{\alpha}$ by what factor? (Two decimals — and let the smallness of this n
       answer: 1.27,
       tolerance: 0.05,
       explain: md`$2^{0.34} \approx 1.27$ — double the model, and the capacity error only drops
-27%. Scaling *works* and scaling is *merciless*: each decade of loss improvement costs roughly a
-decade of resources. This one number is why "just make it bigger" is simultaneously the industry's
+27%. Scaling *works* and scaling is *merciless*: 10× the parameters cuts the capacity term only
+~2.2×, and a 10× cut would take ~900× the parameters. This one number is why "just make it bigger" is simultaneously the industry's
 strategy and its budget crisis.`,
     },
     {

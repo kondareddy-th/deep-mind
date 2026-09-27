@@ -244,8 +244,9 @@ And the savings cascade, because 4.1 taught you the real bill is the optimizer: 
 bytes/param now applies *only to the adapters* — the frozen base needs no master weights, no
 momentum, no variance. Gradient memory, ditto. QLoRA (4.4 owns it — one line here) compounds the
 trick by storing the frozen base in 4 bits. And at inference, $BA$ can be *merged* into $W$ once
-— add the matrices — so the deployed model pays zero extra latency. The adapter itself is a
-few-hundred-megabyte file: a persona you can email.
+— add the matrices — so the deployed model pays zero extra latency. The adapter itself is a file of
+tens of megabytes (~40M numbers at 2 bytes each is ~80 MB for the 70B example below): a persona
+you can email.
 
 When does LoRA suffice, and when must you pay for full fine-tuning? File this as practice lore
 with honest fuzz, not theorem: **LoRA shines exactly in SFT's sweet spot** — format, persona,
@@ -276,11 +277,12 @@ $$300 \times 131{,}072 \approx 3.9 \times 10^{7} \; \text{trainables} \; \approx
   first token flows.
 - LoRA: $4 \times 10^{7} \times 16 = 6.4 \times 10^{8}$ bytes $\approx$ **0.64 GB** — pocket
   change next to the frozen weights themselves, which QLoRA (4.4) then squeezes to ~35 GB in
-  4-bit. Total: one consumer GPU.
+  4-bit. Total: one 48 GB workstation GPU (the QLoRA paper's own demo), or a pair of 24 GB
+  consumer cards — plus activation memory, which grows with sequence length.
 
 Ratio of training-state bills: $1.12 \times 10^{12} / 6.4 \times 10^{8} \approx$ **1,750×**. So
-what? Full-FT SFT of a 70B is a cluster job for a well-funded lab; LoRA SFT of the same model runs
-overnight on a gaming PC. That three-orders-of-magnitude collapse is *why* a thousand fine-tuned
+what? Full-FT SFT of a 70B is a cluster job for a well-funded lab; LoRA SFT of the same model fits on a
+single workstation GPU. That three-orders-of-magnitude collapse is *why* a thousand fine-tuned
 variants of every open model exist — the experiment became affordable to everyone (4.6's model
 hubs are full of exactly these adapters).
 `,
@@ -605,7 +607,7 @@ same 16 bytes each. Roughly what is the **ratio** of the two training-state memo
       explain: md`Full: $70 \times 10^{9} \times 16 = 1.12$ TB. LoRA: $4 \times 10^{7} \times 16
 \approx 0.64$ GB. Ratio $\approx 1.12 \times 10^{12} / 6.4 \times 10^{8} \approx$ **1,750×** —
 three orders of magnitude, which is the difference between a multi-node cluster reservation and
-an overnight job on one consumer GPU (with the frozen base 4-bit quantized, 4.4). Any answer in
+a job on a single 48 GB GPU (with the frozen base 4-bit quantized, 4.4). Any answer in
 the low thousands shows the right physics; the point of the estimate is the *class* of the answer
 — this is why the open-model ecosystem (4.6) overflows with LoRA adapters and not with full
 fine-tunes.`,

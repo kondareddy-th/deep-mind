@@ -108,7 +108,7 @@ line repeated two million times, a batch of binary junk decoded as text. The tel
 **reproducibility in data-space**: restart from the last checkpoint and replay; if the spike
 recurs at the same *data position* even on different hardware, the data did it.
 
-**Suspect 2: the numerics.** bf16 has fp32's range but only 8 bits of mantissa (4.1, 4.4) — coarse
+**Suspect 2: the numerics.** bf16 has fp32's range but only 7 stored mantissa bits (4.1, 4.4) — coarse
 steps, and range *edges*: one activation blowing past what bf16 can represent becomes an inf, one
 inf becomes a NaN, and an all-reduce is a shared water main — one poisoned gradient and every GPU
 in the group drinks it within a single step (4.2). The tell: per-layer activation and gradient
@@ -127,7 +127,7 @@ Now derive the response protocol from the options, cheapest first:
    big, repeats, or leaves the loss sitting off-trend: rewind to the last save, fast-forward the
    data loader past the poisoned window, resume. Why is "skip it and move on" *principled* rather
    than sloppy? Arithmetic: the skipped window is one shard among millions — maybe 40M tokens out
-   of 15T, or 0.0003% — and 5.1's funnel already discarded **95% of the raw crawl** on far weaker
+   of 15T, or 0.0003% — and 5.1's funnel already discarded **~97% of the extracted text** on far weaker
    evidence than "this data detonated my run." Your dataset was always a choice; you just chose
    slightly harder.
 3. **Heavier hammers** — permanently lower the learning rate, tighten clipping for the rest of the
@@ -181,9 +181,11 @@ weights, Adam's momentum and variance vectors (1.6 — without them the optimize
 and the run wobbles), the learning-rate schedule position, the **data-loader position** (the spike
 forensics above only worked because the checkpoint remembers exactly where in the data we were —
 replay and skip are checkpoint features), and the random-number state. Tally the bytes with 4.1's
-accounting — fp32 master weights, two Adam states, the working copy — and you get the memorable
-**16 bytes per parameter**. A 70B model: $70 \times 10^{9} \times 16 = 1.12$ TB per save. A 405B
-model: about **6.5 TB**, pushed to storage again and again, all run long.
+accounting — fp32 master weights (4), two Adam states (8), the bf16 working copy (2) — and you get
+about **14 bytes per parameter**. (4.1's 16 also counted the bf16 gradients, which a checkpoint
+doesn't need: they are recomputed on the next step. Some setups skip the working copy too and save
+12.) A 70B model: $70 \times 10^{9} \times 14 \approx 1$ TB per save. A 405B model: about
+**5.7 TB**, pushed to storage again and again, all run long.
 
 So: how often should you save? That's an optimization, and to run it you need one input — how
 often does the city lose power? Derive that number yourself before reading on.
@@ -204,8 +206,8 @@ $$\frac{5 \times 365 \times 24}{16{,}000} \approx 2.7 \text{ hours.}$$
 Roughly nine deaths a day; on the order of **800 over a ninety-day run**. "Rare" multiplied by
 16,000 is *routine*: if one kid drops an ice cream once a summer, a stadium of 16,000 kids drops
 one every few minutes. And the arithmetic reproduces reported reality: one frontier lab's
-published post-mortem counted **466 unplanned interruptions in 54 days** of its flagship run —
-one every 2.8 hours, roughly three-quarters traced to hardware. The design consequence: failure is
+published post-mortem counted **466 job interruptions in 54 days** of its flagship run, 419 of
+them unplanned — one unplanned stop every ~3 hours, with about 78% of those traced to hardware. The design consequence: failure is
 not an *event* to react to, it's *weather* to build for — checkpoints, automated resume, spare
 capacity. That's the next derivation.`,
     },
@@ -381,9 +383,9 @@ anomaly worth paging anyone about.`,
 2. **Spike forensics:** three suspects — data (5.1's escapees), numerics (bf16 range edges, one
    NaN shared by all-reduce), lying hardware — each with its diagnostic tell; the protocol: ride
    out small ones (clipping, 1.6, catches most), restart-from-checkpoint **and skip** for the
-   rest, principled because the funnel discarded 95% on weaker evidence.
+   rest, principled because the funnel discarded ~97% on weaker evidence.
 3. **Checkpoints, the run-state kind** (word collision with 4.1 defused): weights + Adam state +
-   loader position at 16 bytes/param — 1.12 TB per save at 70B, 6.5 TB at 405B; cluster MTBF
+   loader position at ~14 bytes/param — ~1 TB per save at 70B, ~5.7 TB at 405B; cluster MTBF
    $\approx 43{,}800/16{,}000 \approx 2.7$ h; cadence from expected value, $T^{*} = \sqrt{2wM}
    \approx 40$ min, and overhead $\propto \sqrt{w}$ — why checkpoint-write engineering is real
    money.
@@ -454,7 +456,7 @@ offset. The standard, principled response:`,
       explain: md`Recurrence at the same data offset on different hardware convicts the data
 (suspect 1) and acquits the hardware. The fix that matches the diagnosis: rewind and *skip* — one
 window of maybe 40M tokens among 15T is 0.0003% of the diet, and 5.1's funnel already discarded
-95% of the raw crawl on far weaker evidence. Option A tempts because it would probably work — but
+~97% of the extracted text on far weaker evidence. Option A tempts because it would probably work — but
 it pays a *forever tax* on the whole run to fix a local poisoning. Option C burns weeks to
 accomplish what a 40-minute rewind does. Option D dilutes but still eats the poison, and changes
 training dynamics mid-run to boot.`,
@@ -513,8 +515,8 @@ it's how we fit the model in memory (4.1)." What's the confusion?`,
       answer: 1,
       explain: md`Classic word collision. Activation checkpointing (4.1) trades FLOPs for memory
 *inside* a single training step — its data lives and dies in GPU RAM and helps you not at all when
-a node catches fire. The run checkpoint is a save-file: 16 bytes/param of weights-plus-Adam-state
-(1.12 TB at 70B) plus the data-loader position, written to distributed storage. Option A tempts
+a node catches fire. The run checkpoint is a save-file: ~14 bytes/param of weights-plus-Adam-state
+(~1 TB at 70B) plus the data-loader position, written to distributed storage. Option A tempts
 precisely because the shared name suggests shared purpose. Option C fails the arithmetic of q2:
 individually rare times 16,000 is every 2.7 hours. Option D confuses fault tolerance with model
 parallelism (4.2) — even a run that fits on one GPU needs saves.`,
@@ -587,15 +589,15 @@ immunity. Option A confuses it with the 4.1 memory tricks.`,
       id: 'm5-l3-q10',
       kind: 'numeric',
       prompt: md`**Fermi, at real scale:** a run checkpoint stores the full training state at
-**16 bytes per parameter** (4.1's accounting: fp32 master weights plus both Adam states plus the
-working copy). For a **405B**-parameter model, roughly how many **terabytes** is one checkpoint?`,
-      answer: 6.5,
-      tolerance: 2,
-      explain: md`$405 \times 10^{9} \times 16 = 6.48 \times 10^{12}$ bytes $\approx$ **6.5 TB**
+**14 bytes per parameter** (fp32 master weights plus both Adam states plus the bf16 working
+copy; the gradients from 4.1's 16 are not saved). For a **405B**-parameter model, roughly how many **terabytes** is one checkpoint?`,
+      answer: 5.7,
+      tolerance: 1.5,
+      explain: md`$405 \times 10^{9} \times 14 = 5.67 \times 10^{12}$ bytes $\approx$ **5.7 TB**
 per save — written to distributed storage every half hour or so, all run long. This number is why
 checkpoint *writes* have a duration $w$ worth engineering down (the cadence optimum scales as
 $\sqrt{w}$), and why "just save constantly" is not free advice. At 70B the same accounting gives
-1.12 TB — worth keeping in your head as the second calibration point.`,
+~1 TB — worth keeping in your head as the second calibration point.`,
     },
     {
       id: 'm5-l3-q11',
@@ -620,7 +622,7 @@ rather than sloppy.`,
    criterion.
 4. **Escalation:** restart from last checkpoint and **skip** the offending data window. Soundness
    argument required: the window is one shard among millions (order 0.0003% of tokens), and 5.1's
-   funnel discarded 95% of the crawl on far weaker evidence — the dataset was always a curated
+   funnel discarded ~97% of the extracted text on far weaker evidence — the dataset was always a curated
    choice; also note what you *don't* do (permanent learning-rate cuts: a forever tax for a local
    poison).
 
