@@ -614,7 +614,7 @@ at**. Moving the target beats tuning the aim.
    collapse debate applies in miniature.
 5. **The ritual:** print fifty random examples and read them. Truncation, format drift, contradictions,
    a stray system prompt, length bias — every one invisible in the loss curve, and a defect rate near
-   40% is *ordinary*. Removing bad examples routinely beats adding good ones.
+   40% is not unusual for a scraped-plus-generated set. Removing bad examples routinely beats adding good ones.
 6. **Mixing and the two-number rule:** blend general data against the alignment tax, and never report
    the task metric without a held-out general-capability metric beside it.
 7. **Contamination against your own eval:** hold out by **source** or by **time**, then check for

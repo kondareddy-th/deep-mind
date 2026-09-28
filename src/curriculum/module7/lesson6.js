@@ -44,8 +44,9 @@ of "correct." It rewards predicting the tokens you handed it. If your set contai
 thirty times because your scraper had a bug, memorising it drops the loss. If half your targets
 open with the same throat-clearing phrase, learning that phrase drops the loss. And memorisation is
 not some exotic risk here — it is the path of least resistance. A LoRA at rank 16 on an 8B model
-carries roughly 30 million trainable parameters; 5,000 examples of 500 tokens is 2.5 million
-training tokens. **You have more knobs than facts, by a factor of ten.** A model that has simply
+carries roughly 14 million trainable parameters on the attention projections, or about 42 million
+with the FFN too (7.5); 5,000 examples of 500 tokens is 2.5 million training tokens. **You have
+more knobs than training tokens, by a factor of five to fifteen.** A model that has simply
 memorised your 5,000 examples produces a gorgeous curve and may be useless.
 
 **(b) It is measured on the training distribution, not the deployment one.** Your dataset was
@@ -113,9 +114,10 @@ the two things wrong. *Check:* read twenty eval failures. Are they failures of t
 training examples actually demonstrate? This takes an hour and is the highest-value hour in the
 whole debugging process.
 
-**3. The eval is too small to see the change.** 200 items near 80% has a difference standard error
-of about 2.8 points, so a genuine +3 improvement produces a reading anywhere from roughly $-2.6$ to
-$+8.6$. "Flat" may be what a real improvement looks like through a blurry lens. *Check:* compute the
+**3. The eval is too small to see the change.** 200 items near 80% gives each score a standard
+error of about 2.8 points, and the *difference* between two scores about 4 points (the arithmetic is
+a few sections down). So a genuine +3 improvement produces a reading anywhere from roughly $-5$ to
+$+11$. "Flat" may be what a real improvement looks like through a blurry lens. *Check:* compute the
 standard error before you interpret the number — the arithmetic is a few sections down.
 
 **4. Distribution mismatch.** Your training inputs are clean and templated; your eval inputs are real

@@ -325,7 +325,8 @@ architecture — is detail hanging off that one number.
 
 Add the frozen base itself and the picture completes: 70B weights at bf16 is 140 GB, which is still
 two GPUs; run the base in 4 bits instead (4.4's QLoRA, whose *read-only, no-accumulation* argument
-is exactly why that works) and it's ~35 GB. Base plus adapters plus optimizer now fits on one card.
+is exactly why that works) and it's ~35 GB. Base plus adapters plus optimizer now fits on one 48 GB card (not a 24 GB consumer card — the
+base alone is bigger than that).
 A job that was a multi-node cluster booking became an overnight run on a workstation, and the
 reason a thousand fine-tuned variants of every open model exist is that this collapse happened.
 `,

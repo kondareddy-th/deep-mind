@@ -463,7 +463,8 @@ do them. Which is also why, if your model genuinely lacks a capability, no amoun
 data will install it — that is an SFT or a pretraining problem wearing a preference-tuning costume.
 
 **And the recipe for Monday**, since that was the puzzle: one GPU, an 8B model, a few thousand
-unpaired thumbs. Full-parameter DPO on 8B needs roughly 130 GB and will not fit, so train **LoRA
+unpaired thumbs. Full-parameter DPO on 8B needs roughly 145 GB (128 GB of training state for the policy, 16 GB
+for the frozen reference) and will not fit, so train **LoRA
 adapters** — which has a lovely side effect: with LoRA, the reference model is just your base model
 with the adapters switched off, so the reference costs you **zero extra weights**. Use **KTO**,
 because your labels are unpaired and manufacturing fake pairs would teach the wrong thing. Start at
