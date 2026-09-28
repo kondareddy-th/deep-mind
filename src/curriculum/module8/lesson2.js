@@ -24,7 +24,8 @@ Now here is FlashAttention, and here are three facts about it.
 
 **One.** It computes *that*. Not an approximation of it, not a sparsified version of it, not "attention
 but only over nearby tokens." The same function, the same inputs, the same outputs — agreeing
-bit-for-bit up to the reordering that floating-point addition always permits. Nothing is dropped.
+up to the tiny rounding differences that reordering floating-point additions always introduces
+(so not bit-identical, but not an approximation either). Nothing is dropped.
 
 **Two.** It performs **more** arithmetic than the naive implementation. Not incidentally, not as an
 unfortunate overhead — *deliberately*. It recomputes quantities it could have saved, and it applies
@@ -177,8 +178,9 @@ Five ops: **20 GB**.
 **(c) Time.** Unfused: $20 \times 10^{9} / 3.35 \times 10^{12} \approx 6.0$ **ms**. Fused:
 $4 \times 10^{9} / 3.35 \times 10^{12} \approx 1.2$ **ms**. Five times faster, and — this is the part
 worth staring at — **the two versions compute exactly the same thing.** Not an approximation. Not a
-different algorithm. The same arithmetic, on the same numbers, in the same order, producing the same
-bits. The only difference is where the intermediate values were standing when the next operation
+different algorithm. The same arithmetic, on the same numbers, producing the same result — up to
+rounding, which fusion usually *improves*, since intermediates can stay in fp32 registers instead of
+being rounded to bf16 between kernels. The only difference is where the intermediate values were standing when the next operation
 wanted them.
 
 **(d) The fraction spent computing.** $10^{10}$ elements-worth of FLOPs is $10^{10}$ FLOPs, which at
@@ -654,8 +656,8 @@ explanation?`,
         'It is the first implementation able to use tensor cores for the score matrix multiply, which the naive version computes on general-purpose units',
       ],
       answer: 2,
-      explain: md`The whole point is that it is **exact** — same inputs, same outputs, bit-for-bit up
-to floating-point reordering. Option A describes a completely different family (sparse, sliding-window
+      explain: md`The whole point is that it is **exact** — same inputs, same outputs, equal up to
+floating-point rounding (not an approximation). Option A describes a completely different family (sparse, sliding-window
 and linear attention): those are real techniques and genuinely useful, but they *approximate*, and
 confusing them with FlashAttention is the single most common misunderstanding in this area. Option B
 confuses this with quantization (4.4), a separate and stackable lever. Option D is simply false — the

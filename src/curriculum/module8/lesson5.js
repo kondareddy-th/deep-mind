@@ -54,7 +54,8 @@ all?"** Slowness is a symptom; redundancy is a structure you can attack.
 
 - The KV cache stored 64 heads' worth of keys and values that were *all projections of one hidden
   state* — 28× redundant (8.3).
-- A dense model runs every parameter for every token when ~95% are irrelevant to that token (4.3).
+- A dense model runs every parameter for every token, though MoE shows most can sit out any given
+  token (DeepSeek-V3 activates ~5.5% per token, 4.3 and 8.3).
 - A fine-tuning update touches 16.8M numbers per matrix when the useful change lives in a few
   directions (7.2).
 - Duplicated training documents teach recitation rather than generalisation (5.1).
@@ -396,13 +397,16 @@ knowledge out of the weights entirely.`,
     {
       id: 'm8-l5-q2',
       kind: 'numeric',
-      prompt: md`Three independent efficiency wins are stacked on one workload: FP8 gives 2×,
-better batching gives 1.5×, and a kernel fusion pass gives 3×. If they act on independent
-bottlenecks, what is the combined speedup?`,
+      prompt: md`Three efficiency wins are stacked on one workload, applied one after another: FP8
+gives 2×, then better batching gives 1.5×, then a kernel fusion pass gives 3× — each measured as a
+whole-workload speedup on top of the previous ones. What is the combined speedup?`,
       answer: 9,
       tolerance: 0.5,
-      explain: md`$2 \times 1.5 \times 3 = 9\times$ — multiplicative *when independent*, and that
-compounding is why efficiency work is so valuable: three modest wins become an order of magnitude.
+      explain: md`$2 \times 1.5 \times 3 = 9\times$ — multiplicative because each factor is a
+multiplier on the *total* time, measured after the previous fix landed. That compounding is why
+efficiency work is so valuable: three modest wins become an order of magnitude. Contrast a different
+situation: if each fix sped up only its *own* phase of the step, you could not multiply — Amdahl
+(8.1) governs, and the combined gain is far smaller.
 The essential caveat is 8.1's roofline: once a fix moves you out of the memory-bound region, further
 byte-reductions stop helping, so wins stack only while each is addressing a live bottleneck. Claimed
 speedups that assume independence without checking are one of the most common overstatements in the

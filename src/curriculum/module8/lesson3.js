@@ -35,13 +35,16 @@ Because here is the claim I want to earn by the end: the specific tricks are wor
 
 ## Start with the constraint
 
-Export controls meant DeepSeek could not buy H100s. They trained on **H800s** — the same compute,
-deliberately **reduced cross-node interconnect bandwidth**.
+Export controls meant DeepSeek could not buy H100s. They trained on **H800s** — essentially the
+same compute, with the **chip-to-chip interconnect deliberately cut** (NVLink at roughly 400 GB/s
+instead of the H100's 900).
 
 Look at what that does through lesson 4.1's ladder. The rungs — SRAM, HBM, NVLink, InfiniBand —
-each an order of magnitude slower than the last. Cutting inter-node bandwidth means the *lowest,
-slowest rung got slower still*, and 4.2 told you which workloads live on that rung: expert
-parallelism's all-to-all traffic, pipeline stages, gradient synchronisation.
+each an order of magnitude slower than the last. The NVLink rung got slower, and the InfiniBand rung
+between machines was already the slowest of all. 4.2 told you which workloads live on those bottom
+rungs: expert parallelism's all-to-all traffic, pipeline stages, gradient synchronisation. For a
+huge MoE model spread over thousands of GPUs, that traffic is enormous — the V3 paper reports that
+cross-node expert communication alone was on the order of the compute time itself.
 
 So their binding constraint was not FLOPs. It was **bytes crossing machines**. Hold that in mind,
 because from here almost everything they did reads as a direct answer to it — and that is what
@@ -78,8 +81,10 @@ RoPE (2.4) rotates keys *by position*, which does not commute with that absorpti
 is honest engineering — split off a small slice of each head's dimensions to carry the rotary part,
 cache that slice separately, and leave the rest to the latent compression. Not elegant. Correct.
 
-**What it bought** (their reported numbers): a KV cache roughly **93% smaller than MHA**, with
-benchmark quality *matching or exceeding* full MHA — not the usual quality-for-memory trade, which
+**What it bought** (their reported numbers, from DeepSeek-V2 where MLA debuted): a KV cache
+**93% smaller than their previous dense model's** — DeepSeek 67B, which already used GQA, so the
+saving against plain MHA is larger still — and, in their ablations, quality *matching or exceeding*
+full MHA — not the usual quality-for-memory trade, which
 is why it landed hard. Play with the arithmetic below before reading on.
 `,
     },
@@ -102,7 +107,7 @@ about 2 MB at 2 bytes each.
 **(b) MLA:** $64 \times (512 + 64) = 36{,}864$ numbers — about 74 KB.
 
 **(c) Reduction:** $1{,}048{,}576 / 36{,}864 \approx \mathbf{28\times}$ (the exact factor depends on
-$d_c$ and head count; the published figure of ~93% smaller corresponds to their own configuration).
+$d_c$ and head count; the published ~93% was measured against their earlier GQA model, a different baseline).
 
 **Where the saving came from** — this is the part worth internalising. Not from throwing information
 away (that is GQA's method: fewer independent key/value heads, and quality pays). MLA's saving comes
@@ -351,8 +356,8 @@ wins come from optimising what is actually binding, and those are rarely the sam
 
 **2. Ask what is redundant, not what is slow.** The interesting question is never "how do I make
 this faster?" but "**why does this cost anything at all?**" The KV cache was 28× redundant because
-64 heads stored projections of one shared vector. Dense models are ~95% redundant per token because
-most parameters are irrelevant to any given input. Redundancy is compressible; slowness often isn't.
+64 heads stored projections of one shared vector. MoE bets that most parameters are irrelevant to any given
+input — V3 activates only ~5.5% of its weights per token and still competes with dense models. Redundancy is compressible; slowness often isn't.
 
 **3. Suspect any penalty term.** If you are enforcing something with a lambda-weighted loss, you are
 negotiating with your own objective. Ask whether it can be built into the architecture, or handled by
@@ -570,8 +575,9 @@ Full credit requires the "RL needs sampleable success" mechanism in (1) and a ge
         'The quadratic cost of attention at long context',
       ],
       answer: 1,
-      explain: md`The H800's distinguishing restriction was interconnect, not compute — so the
-binding constraint was bytes crossing machines (4.1's slowest rung), and both techniques target
+      explain: md`The H800's distinguishing restriction was interconnect (its NVLink was cut), not
+compute — and with cross-node InfiniBand already the slowest link, the binding constraint was bytes
+crossing between GPUs and machines (4.1's slowest rungs), and both techniques target
 exactly that: overlap the traffic with work you were doing anyway, and keep what you can on NVLink.
 Option C names the H800's *unrestricted* dimension, which is the tempting error: knowing which
 resource was actually scarce is the entire diagnostic skill this lesson teaches.`,
@@ -586,7 +592,9 @@ law, what is the corresponding ceiling improvement for a memory-bound step?`,
       tolerance: 0.2,
       explain: md`A factor of **2** on both counts: half the bytes moved, and (for anything
 memory-bound) roughly double the attainable throughput, since tokens/sec scales inversely with bytes
-streamed. This is the same lever quantization pulls at inference (4.4) applied to training — and
+streamed. (Most training GEMMs are actually compute-bound, not memory-bound — but there the other
+half of FP8 kicks in: its tensor cores run at roughly twice the bf16 rate, so the ceiling doubles
+either way.) This is the same lever quantization pulls at inference (4.4) applied to training — and
 it's why the FP8 work matters beyond a memory saving: on a machine whose scarce resource is data
 movement, halving the bytes is close to doubling the machine.`,
     },

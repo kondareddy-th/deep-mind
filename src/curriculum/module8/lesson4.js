@@ -281,7 +281,8 @@ suggests. Know which one you are doing.
 5. **What transfers** (behaviour, format, reasoning traces) **and what doesn't** (breadth, rare
    facts — a capacity limit no teaching method repeals), plus the three honest ways a student can
    exceed its teacher.
-6. **The economics:** discover once at frontier cost, deploy at roughly 35× lower serving cost —
+6. **The economics:** discover once at frontier cost, deploy with ~35× fewer bytes streamed per token (about
+   an order of magnitude cheaper to serve once batching and overheads are counted) —
    and speculative decoding as the same idea applied at inference, with acceptance rate as a
    distillation-quality meter.
 

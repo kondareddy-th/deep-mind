@@ -172,7 +172,7 @@ profile, fix the top, profile again. Teams that profile once and then optimise f
 navigating with a photograph of the road.
 
 **And the honest ceiling on all of it.** Even doing everything above perfectly, you get somewhere
-around $1.3\times$: three days becomes two days and four hours. If what you needed was *three days
+around $1.3\times$: three days becomes about two days and seven hours. If what you needed was *three days
 becomes seven hours*, no amount of this will deliver it, and continuing to look here is a form of
 procrastination. A $4\times$ lives in a different tier entirely — which is the next section.
 `,
@@ -525,8 +525,8 @@ layer norms, elementwise activations, optimizer arithmetic, and reductions — a
 **bandwidth-bound by nature**, sitting far left of the ridge no matter who writes the kernel. Add
 pipeline bubbles, communication that cannot be fully hidden, and a denominator that is a marketing
 number (peak clocks, no thermal throttling, no sparsity discount). Amdahl closes the argument: if
-20% of the step is irreducibly memory-bound, then even perfect matmuls cap you at $1/0.2 = 5\times$
-on that portion and nowhere near 90% overall.
+20% of the step is irreducibly memory-bound and does almost no model FLOPs, then even perfect
+matmuls in the other 80% leave MFU at most 80% — before bubbles and communication take their share.
 
 **2. The metric measures the wrong thing.** MFU asks *how efficiently am I doing arithmetic*, never
 *is this arithmetic worth doing*. A 90%-MFU run that trains a badly-sized model on a mediocre data
